@@ -39,29 +39,16 @@ def get_dna_sequences(data):
     return np.stack(data[i] for i in myInts.flat)
 
 
-# Build RNN cell
-encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(hiddenUnits)
-
-# Run Dynamic RNN
-#   encoder_outputs: [max_time, batch_size, num_units]
-#   encoder_state: [batch_size, num_units]
-# encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
-#     encoder_cell, dna_sequences,
-#     sequence_length=sequenceLength, time_major=True)
-
 data_input = tf.placeholder(tf.float32, [batchSize, sequenceLength, dnaNumLetters])
 
-# rnnCell = tf.nn.rnn_cell.BasicRNNCell(hiddenUnits)
-# initial_state = rnnCell.zero_state(batchSize, dtype=tf.float32)
-
+# Encoder
+encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(hiddenUnits)
 encoder_outputs, encoder_state = tf.nn.dynamic_rnn(cell=encoder_cell,
                                                    inputs=data_input, dtype=tf.float32, time_major=False)
 
-# Build RNN cell
 decoder_cell = tf.nn.rnn_cell.BasicLSTMCell(hiddenUnits)
 
 # Helper
-# decoder_inp = tf.placeholder(dtype=tf.float32, shape=[batchSize, sequenceLength, hiddenUnits])  # batch_major input
 decoder_lengths = tf.placeholder(dtype=tf.int32, shape=[None])
 
 helper = tf.contrib.seq2seq.TrainingHelper(
@@ -70,7 +57,6 @@ helper = tf.contrib.seq2seq.TrainingHelper(
 projection_layer = tf.layers.Dense(dnaNumLetters, use_bias=True)
 
 # Decoder
-# initial_state might be decoder_cell.zero_state(batchSize, tf.float32)
 decoder = tf.contrib.seq2seq.BasicDecoder(
     decoder_cell, helper, initial_state=encoder_state,
     output_layer=projection_layer)
@@ -85,10 +71,6 @@ losses = tf.nn.softmax_cross_entropy_with_logits_v2(
     labels=data_input, logits=outputs)
 
 totalLoss = tf.reduce_mean(losses)
-# target_weights = tf.zeros([3, 4], tf.int32)
-# train_loss = (tf.reduce_sum(losses * target_weights) /
-#               batch_size)
-
 
 # Calculate and clip gradients
 params = tf.trainable_variables()
@@ -102,12 +84,9 @@ update_step = optimizer.apply_gradients(
     zip(clipped_gradients, params))
 
 with tf.Session() as sess:
-    #
-    # initialize everything
     sess.run(tf.global_variables_initializer())
     data = read_data("dataset/dna_seq_50x20.txt")
-    #
-    # and run the training iters
+
     for epoch in range(numTrainingIters):
         #
         # get some data
@@ -120,9 +99,7 @@ with tf.Session() as sess:
                 data_input: dna_sequences,
                 decoder_lengths: [len(i) for i in dna_sequences]
             })
-        #
-        # just FYI, compute the number of correct predictions
-    # numCorrect = 0
+
     entSequence = 0
     correct = 0
     for i in range(len(dna_sequences)):
@@ -141,7 +118,5 @@ with tf.Session() as sess:
         print(numCorrect)
         correct += numCorrect
 
-        #
-        # print out to the screen
     print("Step", epoch, "Loss", _totalLoss, "Correct", correct, "out of", batchSize * sequenceLength,
           " correct entire seq ", entSequence)
