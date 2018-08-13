@@ -11,7 +11,7 @@ learningRate = 0.05
 
 batchSize = 100
 
-numTrainingIters = 5000
+numTrainingIters = 500
 
 # Used for gradient clipping by the global norm.
 # The max value is often set to a value like 5 or 1.
