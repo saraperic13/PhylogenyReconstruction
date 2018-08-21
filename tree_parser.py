@@ -1,35 +1,30 @@
-class Tree:
-
-    def __init__(self, tips, nodes, edges):
-        self.tips = tips
-        self.nodes = nodes
-        self.edges = edges
+from newick import load
+import io
+from tree import Tree
 
 
-class Tip:
+def load_tree(node, tree):
+    if not node.name:
+        tree.increment_number_of_named()
+        node.name = tree.get_number_of_named()
 
-    def __init__(self, name, parent):
-        self.name = name
-        self.parent = parent
+    tree.add_node(node)
 
-
-class Node(Tip):
-
-    def __init__(self, name, parent, encoded_sequence):
-        super().__init__(name, parent)
-        self.encoded_sequence = encoded_sequence
-
-
-class Edge:
-
-    def __init__(self, tip, node):
-        self.tip = tip
-        self.node = node
+    for child in node.descendants:
+        load_tree(child, tree)
 
 
 def parse(file_name):
-    pass
+    with io.open(file_name, encoding='utf8') as fp:
+        loaded_tree = load(fp)[0]
+        tree = Tree(len(loaded_tree.get_leaves()))
+        load_tree(loaded_tree, tree)
+
+    print(tree)
 
 
 def are_together(node_1, node_2):
     pass
+
+
+parse('dataset/small_tree.tree')
