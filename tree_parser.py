@@ -9,7 +9,6 @@ def load_tree(node, tree):
         node.name = tree.get_number_of_named()
 
     tree.add_node(node)
-    print("ANCESTOR ", node.ancestor)
 
     for child in node.descendants:
         load_tree(child, tree)
@@ -40,9 +39,13 @@ def are_together(node_1, node_2, root):
 
 def main():
     tree = parse('dataset/small_tree.tree')
-    print(tree)
-    subroot = tree.get_random_node()
-
+    # print(tree)
+    for i in range(10):
+        subroot = tree.get_random_node()
+        for j in range(10):
+            children = tree.get_random_descendants_from_subroot(subroot)
+            print(children[0].name, ", ", children[1].name, " together: ",
+                  are_together(children[0], children[1], subroot), " subroot ", subroot.name)
 
 
 main()
