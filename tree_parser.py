@@ -9,6 +9,7 @@ def load_tree(node, tree):
         node.name = tree.get_number_of_named()
 
     tree.add_node(node)
+    print("ANCESTOR ", node.ancestor)
 
     for child in node.descendants:
         load_tree(child, tree)
@@ -19,12 +20,29 @@ def parse(file_name):
         loaded_tree = load(fp)[0]
         tree = Tree(len(loaded_tree.get_leaves()))
         load_tree(loaded_tree, tree)
+    return tree
 
+
+def get_first_ancestor_after_root(node, root):
+    if node.ancestor == root:
+        return node
+    return get_first_ancestor_after_root(node.ancestor, root)
+
+
+def are_together(node_1, node_2, root):
+    ancestor_node_1 = get_first_ancestor_after_root(node_1, root)
+    ancestor_node_2 = get_first_ancestor_after_root(node_2, root)
+
+    if ancestor_node_1 == ancestor_node_2:
+        return True
+    return False
+
+
+def main():
+    tree = parse('dataset/small_tree.tree')
     print(tree)
+    subroot = tree.get_random_node()
 
 
-def are_together(node_1, node_2):
-    pass
 
-
-parse('dataset/small_tree.tree')
+main()
