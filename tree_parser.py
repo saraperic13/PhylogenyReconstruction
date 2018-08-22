@@ -1,7 +1,7 @@
 from newick import load
 import io
 from tree import Tree
-from tree_utils import get_random_descendants_from_subroot
+from tree_utils import get_random_descendants_from_subroot, are_together
 
 
 def load_tree(node, tree):
@@ -21,21 +21,6 @@ def parse(file_name):
         tree = Tree(len(loaded_tree.get_leaves()))
         load_tree(loaded_tree, tree)
     return tree
-
-
-def get_first_ancestor_after_root(node, root):
-    if node.ancestor == root:
-        return node
-    return get_first_ancestor_after_root(node.ancestor, root)
-
-
-def are_together(node_1, node_2, root):
-    ancestor_node_1 = get_first_ancestor_after_root(node_1, root)
-    ancestor_node_2 = get_first_ancestor_after_root(node_2, root)
-
-    if ancestor_node_1 == ancestor_node_2:
-        return True
-    return False
 
 
 def main():
