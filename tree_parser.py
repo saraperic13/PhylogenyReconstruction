@@ -1,7 +1,7 @@
 from newick import load
 import io
 from tree import Tree
-from tree_utils import get_random_descendants_from_subroot, are_together
+from tree_utils import get_random_descendant_leaves_from_subroot, are_together
 
 
 def load_tree(node, tree):
@@ -29,7 +29,7 @@ def main():
     for i in range(10):
         subroot = tree.get_random_node()
         for j in range(10):
-            children = get_random_descendants_from_subroot(subroot)
+            children = get_random_descendant_leaves_from_subroot(subroot)
             print(children[0].name, ", ", children[1].name, " together: ",
                   are_together(children[0], children[1], subroot), " subroot ", subroot.name)
 

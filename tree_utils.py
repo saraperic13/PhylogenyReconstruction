@@ -1,18 +1,20 @@
 import random
 
 
-def get_all_node_descendants(node, descendants):
+def get_all_node_descendant_leaves(node, descendants):
     if not node.descendants:
         return
-    for item in node.descendants:
-        descendants.append(item)
     for child in node.descendants:
-        get_all_node_descendants(child, descendants)
+        # only select leaves
+        if not child.descendants:
+            descendants.append(child)
+    for child in node.descendants:
+        get_all_node_descendant_leaves(child, descendants)
 
 
-def get_random_descendants_from_subroot(subroot):
+def get_random_descendant_leaves_from_subroot(subroot):
     descendants = []
-    get_all_node_descendants(subroot, descendants)
+    get_all_node_descendant_leaves(subroot, descendants)
     return descendants if not descendants else random.choice(descendants), random.choice(descendants)
 
 
