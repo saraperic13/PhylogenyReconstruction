@@ -28,4 +28,4 @@ def are_together(node_1, node_2, root):
 
     if ancestor_node_1 == ancestor_node_2:
         return 1
-    return -1
+    return 0
