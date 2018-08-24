@@ -21,8 +21,7 @@ class Tree:
     #         print("Children of node ", node.name, [n.name for n in node.descendants])
 
     def get_random_node(self):
-        # subroot = random.choice(self.nodes)
-        # while not subroot.descendants:
-        #     subroot = random.choice(self.nodes)
-        # return subroot
-        return self.nodes[10]
+        subroot = random.choice(self.nodes)
+        while not subroot.descendants:
+            subroot = random.choice(self.nodes)
+        return subroot

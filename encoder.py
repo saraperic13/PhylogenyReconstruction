@@ -13,7 +13,7 @@ learningRate = 0.05
 
 batchSize = 100
 
-numTrainingIters = 10
+numTrainingIters = 1000
 
 
 def sequence_to_one_hot_enc(seq):
@@ -60,7 +60,7 @@ def get_subroot_and_nodes(tree, data):
 
     leaves = tree_utils.get_random_descendants(descendants)
     together = tree_utils.are_together(leaves[0], leaves[1], subroot)
-    print(leaves[0].name, ", ", leaves[1].name, " together: ", together, " subroot ", subroot.name)
+    # print(leaves[0].name, ", ", leaves[1].name, " together: ", together, " subroot ", subroot.name)
 
     dna_descendants = []
     for child in descendants:
@@ -102,7 +102,6 @@ encoder_outputs, _ = tf.nn.dynamic_rnn(cell=encoder_cell,
                                        inputs=dna_sequence_input_2, dtype=tf.float32)
 encoded_dna_sequence_2 = encoder_outputs[:, -1, :]
 
-# feed_forward_inputX = tf.stack([encoded_dataset[0], encoded_dna_sequence_1[0], encoded_dna_sequence_2[0]])
 feed_forward_inputX = tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
 # Classifier
 # Weight initializations
@@ -115,23 +114,27 @@ b2 = tf.Variable(np.zeros((1, 2)), dtype=tf.float32)
 h = tf.nn.tanh(tf.matmul(feed_forward_inputX, w_1) + b1)
 output = tf.matmul(h, w_2) + b2
 
-predictions = tf.nn.softmax(output)
+predictions = tf.nn.sigmoid(output)
 
 losses = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=inputY, logits=output)
 total_loss = tf.reduce_mean(losses)
 
 training_alg = tf.train.AdagradOptimizer(0.02).minimize(total_loss)
 
+correct_pred = tf.equal(tf.round(predictions), tf.cast(inputY, tf.float32))
+accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+
+
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     data = read_data("dataset/small_tree_seq.txt")
 
-    for epoch in range(numTrainingIters):
+    for step in range(numTrainingIters + 1):
 
         subroot, dna_descendants, dna_child_1, dna_child_2, together = get_subroot_and_nodes(tree, data)
 
-        _encoded_dataset, _totalLoss, _training_alg, _predictions = sess.run(
-            [encoded_dataset, total_loss, training_alg, predictions],
+        _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy = sess.run(
+            [encoded_dataset, total_loss, training_alg, predictions, accuracy],
             feed_dict={
                 data_input: dna_descendants,
                 dna_sequence_input_1: [dna_child_1],
@@ -139,5 +142,8 @@ with tf.Session() as sess:
                 inputY: [together]
             })
 
-        print(_predictions)
+        if step % 500 == 0:
+            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
+                step, _totalLoss, _accuracy))
+
 
