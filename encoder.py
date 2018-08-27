@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+
 import tree_parser
 import tree_utils
 
@@ -13,7 +14,7 @@ learningRate = 0.05
 
 batchSize = 10
 
-numTrainingIters = 50
+numTrainingIters = 100
 
 
 def sequence_to_one_hot_enc(seq):
@@ -56,14 +57,12 @@ def get_subroot_and_nodes(tree, data):
         tree_utils.get_all_node_descendant_leaves(subroot, descendants)
 
         for child in descendants:
-            # dna_descendants.append(np.reshape(data[child.name][0].astype(np.float32), (1, 20, 4)))
-            dna_descendants.append(data[child.name][0].astype(np.float32))
+            dna_descendants.append(data[child.name][0])
 
         some.append(dna_descendants)
 
         leaves = tree_utils.get_random_descendants(descendants)
         together.append([tree_utils.are_together(leaves[0], leaves[1], subroot)])
-        # print(leaves[0].name, ", ", leaves[1].name, " together: ", together, " subroot ", subroot.name)
 
         dna_children_1.append(data[leaves[0].name][0])
         dna_children_2.append(data[leaves[1].name][0])
@@ -102,9 +101,10 @@ encoder_outputs, _ = tf.nn.dynamic_rnn(cell=encoder_cell,
                                        inputs=dna_sequence_input_2, dtype=tf.float32)
 encoded_dna_sequence_2 = encoder_outputs[:, -1, :]
 
-feed_forward_inputX = tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
 # Classifier
-# Weight initializations
+
+feed_forward_inputX = tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
+
 w_1 = init_weights((3 * hiddenUnits, hiddenUnits))
 b1 = tf.Variable(np.zeros((1, hiddenUnits)), dtype=tf.float32)
 
@@ -116,17 +116,17 @@ output = tf.matmul(h, w_2) + b2
 
 predictions = tf.nn.sigmoid(output)
 
-losses = tf.nn.sigmoid_cross_entropy_with_logits (labels=inputY, logits=output)
+losses = tf.nn.sigmoid_cross_entropy_with_logits(labels=inputY, logits=output)
 total_loss = tf.reduce_mean(losses)
 
 training_alg = tf.train.AdagradOptimizer(0.02).minimize(total_loss)
 
-correct_pred = tf.equal(tf.round(predictions), tf.cast(inputY, tf.float32))
+correct_pred = tf.equal(tf.round(predictions), inputY)
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    data = read_data("dataset/dna_sequences_20.txt")
+    data = read_data("dataset/seq_20.txt")
 
     for step in range(numTrainingIters + 1):
 
@@ -140,7 +140,20 @@ with tf.Session() as sess:
                 dna_sequence_input_2: dna_child_2,
                 inputY: together
             })
-
         if step % 50 == 0:
             print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
                 step, _totalLoss, _accuracy))
+
+    print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
+        step, _totalLoss, _accuracy))
+
+    # TEST
+    test = read_data("dataset/seq_20_2.txt")
+    for step in range(10):
+        dna_descendants, dna_child_1, dna_child_2, together = get_subroot_and_nodes(tree, test)
+
+
+        print("ACC  {:.2%}".format(accuracy.eval(feed_dict={data_input: dna_descendants,
+                                                              dna_sequence_input_1: dna_child_1,
+                                                              dna_sequence_input_2: dna_child_2,
+                                                              inputY: together}, session=sess)))
