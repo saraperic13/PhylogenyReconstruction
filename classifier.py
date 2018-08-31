@@ -6,17 +6,17 @@ import tree_utils
 
 
 def write_to_file(losses, accuracy):
-    with open("test_loss.txt", "a") as f:
+    with open("test/test_loss.txt", "a") as f:
         f.write(losses)
 
-    with open("test_acc.txt", "a") as f:
+    with open("test/test_acc.txt", "a") as f:
         f.write(accuracy)
 
 
 tree = tree_parser.parse('dataset/phylogeny.tree')
 
 with tf.Session() as sess:
-    tf.saved_model.loader.load(sess, ["myTag"], './SavedModel50/')
+    tf.saved_model.loader.load(sess, ["phylogeny_reconstructor"], './batch_change2/')
 
     graph = tf.get_default_graph()
     print(graph.get_operations())

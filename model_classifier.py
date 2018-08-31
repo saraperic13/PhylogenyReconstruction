@@ -6,17 +6,16 @@ import load_data_utils
 import tree_parser
 import tree_utils
 
-hiddenUnits = 50
+hidden_units_encoder = 50
+# hidden_units_ffnn = 100
 
 sequenceLength = 20
 
 dnaNumLetters = 4
 
-learningRate = 0.05
-
 batchSize = 100
 
-numTrainingIters = 1000
+numTrainingIters = 2000
 
 
 def init_weights(shape):
@@ -31,10 +30,10 @@ dna_sequence_input_1 = tf.placeholder(tf.float32, [batchSize, sequenceLength, dn
                                       name="encoder_dna_seq_1_plc")
 dna_sequence_input_2 = tf.placeholder(tf.float32, [batchSize, sequenceLength, dnaNumLetters],
                                       name="encoder_dna_seq_2_plc")
-inputY = tf.placeholder(tf.float32, [batchSize, 1], name="together_plc")
+inputY = tf.placeholder(tf.float32, [batchSize, 2], name="together_plc")
 
 # Encoder
-encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(hiddenUnits)
+encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_units_encoder)
 
 encoded_dataset = tf.map_fn(lambda x: tf.nn.dynamic_rnn(cell=encoder_cell,
                                                         inputs=x,
@@ -56,26 +55,26 @@ encoded_dna_sequence_2 = encoder_outputs[:, -1, :]
 
 feed_forward_inputX = tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
 
-w_1 = init_weights((3 * hiddenUnits, hiddenUnits))
-b1 = tf.Variable(np.zeros((1, hiddenUnits)), dtype=tf.float32)
+w_1 = init_weights((3 * hidden_units_encoder, hidden_units_encoder))
+b1 = tf.Variable(np.zeros((1, hidden_units_encoder)), dtype=tf.float32)
 
-w_2 = init_weights((hiddenUnits, 1))
-b2 = tf.Variable(np.zeros((1, 1)), dtype=tf.float32)
+w_2 = init_weights((hidden_units_encoder, 2))
+b2 = tf.Variable(np.zeros((1, 2)), dtype=tf.float32)
 
 h = tf.nn.tanh(tf.matmul(feed_forward_inputX, w_1) + b1)
 output = tf.matmul(h, w_2) + b2
 
-predictions = tf.nn.sigmoid(output, name="predictions")
+predictions = tf.nn.softmax(output, name="predictions")
 
-losses = tf.nn.sigmoid_cross_entropy_with_logits(labels=inputY, logits=output)
+losses = tf.nn.softmax_cross_entropy_with_logits(labels=inputY, logits=output)
 total_loss = tf.reduce_mean(losses, name="loss")
 
-training_alg = tf.train.AdagradOptimizer(0.02).minimize(total_loss)
+training_alg = tf.train.AdagradOptimizer(0.1).minimize(total_loss)
 
 correct_pred = tf.equal(tf.round(predictions), inputY)
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32), name="accuracy")
 
-builder = tf.saved_model.builder.SavedModelBuilder('./SavedModel50/')
+builder = tf.saved_model.builder.SavedModelBuilder('./select_change/')
 
 signature = predict_signature_def(
     inputs={'encoder_dataset_plc': encoded_dataset, 'encoder_dna_seq_1_plc': dna_sequence_input_1,
@@ -105,7 +104,7 @@ with tf.Session() as sess:
     print(tree.randomly_selected)
 
     builder.add_meta_graph_and_variables(sess=sess,
-                                         tags=["myTag"],
+                                         tags=["phylogeny_reconstructor"],
                                          signature_def_map={'predict': signature})
 
 builder.save()

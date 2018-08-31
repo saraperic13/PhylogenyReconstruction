@@ -7,10 +7,6 @@ class Tree:
         self.randomly_selected = {}
         self.nodes = nodes
         self.number_of_named = number_of_named
-        self.choose_node_prob = []
-        self.depth = 0
-        self.prob = 0
-        self.levels = []
 
     def add_node(self, node):
         self.nodes.append(node)
