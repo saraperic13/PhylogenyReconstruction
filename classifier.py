@@ -4,6 +4,10 @@ import load_data_utils
 import tree_parser
 import tree_utils
 
+tree_file = "dataset/really_small.tree"
+dna_sequence_file = "dataset/really_small_"
+model_file = './models/mali/'
+
 
 def write_to_file(losses, accuracy):
     with open("test_loss.txt", "a") as f:
@@ -13,10 +17,10 @@ def write_to_file(losses, accuracy):
         f.write(accuracy)
 
 
-tree = tree_parser.parse('dataset/phylogeny.tree')
+tree = tree_parser.parse(tree_file)
 
 with tf.Session() as sess:
-    tf.saved_model.loader.load(sess, ["myTag"], './SavedModel50/')
+    tf.saved_model.loader.load(sess, ["phylogeny_reconstruction"], model_file)
 
     graph = tf.get_default_graph()
     print(graph.get_operations())
@@ -32,7 +36,7 @@ with tf.Session() as sess:
 
     for i in range(1, 6):
 
-        data = load_data_utils.read_data("dataset/seq_20_{}.txt".format(str(i)))
+        data = load_data_utils.read_data(dna_sequence_file + "{}.txt".format(str(i)))
 
         for step in range(100):
             dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,

@@ -27,8 +27,8 @@ def are_together(node_1, node_2, root):
     ancestor_node_2 = get_first_ancestor_after_root(node_2, root)
 
     if ancestor_node_1 == ancestor_node_2:
-        return 1
-    return 0
+        return [1, 0]
+    return [0, 1]
 
 
 def get_subroot_and_nodes(tree, data, batchSize):
@@ -46,7 +46,7 @@ def get_subroot_and_nodes(tree, data, batchSize):
         dataset.append(dnas)
 
         leaves = get_random_descendants(descendants)
-        together.append([are_together(leaves[0], leaves[1], subroot)])
+        together.append(are_together(leaves[0], leaves[1], subroot))
 
         dna_children_1.append(data[leaves[0].name][0])
         dna_children_2.append(data[leaves[1].name][0])

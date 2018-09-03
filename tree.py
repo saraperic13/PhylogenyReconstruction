@@ -27,7 +27,7 @@ class Tree:
             subroot = random.choice(self.nodes)
 
         if subroot in self.randomly_selected:
-            self.randomly_selected[subroot] +=1
+            self.randomly_selected[subroot] += 1
         else:
             self.randomly_selected[subroot] = 0
         return subroot

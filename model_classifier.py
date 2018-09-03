@@ -6,7 +6,12 @@ import load_data_utils
 import tree_parser
 import tree_utils
 
-hiddenUnits = 50
+tree_file = "dataset/really_small.tree"
+dna_sequences_file = "dataset/really_small.txt"
+model_path = "./models/mali/"
+
+encoder_hidden_units = 100
+# encoder_hidden_units = 100
 
 sequenceLength = 20
 
@@ -24,17 +29,17 @@ def init_weights(shape):
     return tf.Variable(weights)
 
 
-tree = tree_parser.parse('dataset/phylogeny.tree')
+tree = tree_parser.parse(tree_file)
 
 data_input = tf.placeholder(tf.float32, [batchSize, None, sequenceLength, dnaNumLetters], name="encoder_dataset_plc")
 dna_sequence_input_1 = tf.placeholder(tf.float32, [batchSize, sequenceLength, dnaNumLetters],
                                       name="encoder_dna_seq_1_plc")
 dna_sequence_input_2 = tf.placeholder(tf.float32, [batchSize, sequenceLength, dnaNumLetters],
                                       name="encoder_dna_seq_2_plc")
-inputY = tf.placeholder(tf.float32, [batchSize, 1], name="together_plc")
+inputY = tf.placeholder(tf.float32, [batchSize, 2], name="together_plc")
 
 # Encoder
-encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(hiddenUnits)
+encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(encoder_hidden_units)
 
 encoded_dataset = tf.map_fn(lambda x: tf.nn.dynamic_rnn(cell=encoder_cell,
                                                         inputs=x,
@@ -56,18 +61,18 @@ encoded_dna_sequence_2 = encoder_outputs[:, -1, :]
 
 feed_forward_inputX = tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
 
-w_1 = init_weights((3 * hiddenUnits, hiddenUnits))
-b1 = tf.Variable(np.zeros((1, hiddenUnits)), dtype=tf.float32)
+w_1 = init_weights((3 * encoder_hidden_units, encoder_hidden_units))
+b1 = tf.Variable(np.zeros((1, encoder_hidden_units)), dtype=tf.float32)
 
-w_2 = init_weights((hiddenUnits, 1))
-b2 = tf.Variable(np.zeros((1, 1)), dtype=tf.float32)
+w_2 = init_weights((encoder_hidden_units, 2))
+b2 = tf.Variable(np.zeros((1, 2)), dtype=tf.float32)
 
 h = tf.nn.tanh(tf.matmul(feed_forward_inputX, w_1) + b1)
 output = tf.matmul(h, w_2) + b2
 
-predictions = tf.nn.sigmoid(output, name="predictions")
+predictions = tf.nn.softmax(output, name="predictions")
 
-losses = tf.nn.sigmoid_cross_entropy_with_logits(labels=inputY, logits=output)
+losses = tf.nn.softmax_cross_entropy_with_logits(labels=inputY, logits=output)
 total_loss = tf.reduce_mean(losses, name="loss")
 
 training_alg = tf.train.AdagradOptimizer(0.02).minimize(total_loss)
@@ -75,7 +80,7 @@ training_alg = tf.train.AdagradOptimizer(0.02).minimize(total_loss)
 correct_pred = tf.equal(tf.round(predictions), inputY)
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32), name="accuracy")
 
-builder = tf.saved_model.builder.SavedModelBuilder('./SavedModel50/')
+builder = tf.saved_model.builder.SavedModelBuilder(model_path)
 
 signature = predict_signature_def(
     inputs={'encoder_dataset_plc': encoded_dataset, 'encoder_dna_seq_1_plc': dna_sequence_input_1,
@@ -84,7 +89,7 @@ signature = predict_signature_def(
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    data = load_data_utils.read_data("dataset/seq_20.txt")
+    data = load_data_utils.read_data(dna_sequences_file)
 
     for step in range(numTrainingIters + 1):
 
@@ -105,7 +110,7 @@ with tf.Session() as sess:
     print(tree.randomly_selected)
 
     builder.add_meta_graph_and_variables(sess=sess,
-                                         tags=["myTag"],
+                                         tags=["phylogeny_reconstruction"],
                                          signature_def_map={'predict': signature})
 
 builder.save()
