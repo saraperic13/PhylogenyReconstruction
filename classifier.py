@@ -4,16 +4,18 @@ import load_data_utils
 import tree_parser
 import tree_utils
 
-tree_file = "dataset/really_small.tree"
-dna_sequence_file = "dataset/really_small_"
-model_file = './models/mali/'
+tree_file = "dataset/20.2.tree"
+dna_sequence_file = "dataset/seq_20.2_"
+model_file = './models/learning_rate/'
 
 
-def write_to_file(losses, accuracy):
-    with open("test_loss.txt", "a") as f:
+def write_to_file(losses, accuracy, avg_loss, avg_acc):
+    with open("test/test_loss.txt", "a") as f:
+        f.write("\n\n" + avg_loss)
         f.write(losses)
 
-    with open("test_acc.txt", "a") as f:
+    with open("test/test_acc.txt", "a") as f:
+        f.write("\n\n''" + avg_acc)
         f.write(accuracy)
 
 
@@ -33,6 +35,8 @@ with tf.Session() as sess:
     loss = graph.get_tensor_by_name("loss:0")
 
     losses, accs = [], []
+    average_loss = 0
+    average_acc = 0
 
     for i in range(1, 6):
 
@@ -57,6 +61,15 @@ with tf.Session() as sess:
             print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
                 step, _loss, _accuracy))
 
-        write_to_file("\n" + str(losses), "\n" + str(accs))
+        avg_loss = sum(losses) / len(losses)
+        avg_acc = sum(accs) / len(accs)
+
+        average_acc += avg_acc
+        average_loss += average_loss
+
+        write_to_file("\n" + str(losses), "\n" + str(accs), str(avg_loss), str(avg_acc))
         losses.clear()
         accs.clear()
+
+    print("Accuracy ", average_acc )
+    print("Loss", average_loss )

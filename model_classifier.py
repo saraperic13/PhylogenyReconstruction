@@ -6,18 +6,18 @@ import load_data_utils
 import tree_parser
 import tree_utils
 
-tree_file = "dataset/really_small.tree"
-dna_sequences_file = "dataset/really_small.txt"
-model_path = "./models/mali/"
+tree_file = "dataset/20.2.tree"
+dna_sequences_file = "dataset/seq_20.2.txt"
+model_path = "./models/0.1/"
 
 encoder_hidden_units = 100
-# encoder_hidden_units = 100
+feed_forward_hidden_units = 200
 
 sequenceLength = 20
 
 dnaNumLetters = 4
 
-learningRate = 0.05
+learning_rate = 0.1
 
 batchSize = 100
 
@@ -39,7 +39,7 @@ dna_sequence_input_2 = tf.placeholder(tf.float32, [batchSize, sequenceLength, dn
 inputY = tf.placeholder(tf.float32, [batchSize, 2], name="together_plc")
 
 # Encoder
-encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(encoder_hidden_units)
+encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(encoder_hidden_units, state_is_tuple=True)
 
 encoded_dataset = tf.map_fn(lambda x: tf.nn.dynamic_rnn(cell=encoder_cell,
                                                         inputs=x,
@@ -61,10 +61,10 @@ encoded_dna_sequence_2 = encoder_outputs[:, -1, :]
 
 feed_forward_inputX = tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
 
-w_1 = init_weights((3 * encoder_hidden_units, encoder_hidden_units))
-b1 = tf.Variable(np.zeros((1, encoder_hidden_units)), dtype=tf.float32)
+w_1 = init_weights((3 * encoder_hidden_units, feed_forward_hidden_units))
+b1 = tf.Variable(np.zeros((1, feed_forward_hidden_units)), dtype=tf.float32)
 
-w_2 = init_weights((encoder_hidden_units, 2))
+w_2 = init_weights((feed_forward_hidden_units, 2))
 b2 = tf.Variable(np.zeros((1, 2)), dtype=tf.float32)
 
 h = tf.nn.tanh(tf.matmul(feed_forward_inputX, w_1) + b1)
@@ -75,7 +75,7 @@ predictions = tf.nn.softmax(output, name="predictions")
 losses = tf.nn.softmax_cross_entropy_with_logits(labels=inputY, logits=output)
 total_loss = tf.reduce_mean(losses, name="loss")
 
-training_alg = tf.train.AdagradOptimizer(0.02).minimize(total_loss)
+training_alg = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 
 correct_pred = tf.equal(tf.round(predictions), inputY)
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32), name="accuracy")
