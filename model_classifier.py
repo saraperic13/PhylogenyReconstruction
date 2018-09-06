@@ -7,17 +7,20 @@ import tree_parser
 import tree_utils
 
 tree_file = "dataset/20.2.tree"
-dna_sequences_file = "dataset/seq_20.2.txt"
-model_path = "./models/0.1/"
+dna_sequences_file = "dataset/seq_50.2.txt"
+model_path = "./models/50.2/"
 
-encoder_hidden_units = 100
-feed_forward_hidden_units = 200
+encoder_hidden_size_1 = 128
 
-sequenceLength = 20
+# encoder_hidden_units = 256
+feed_forward_hidden_units_1 = 200
+feed_forward_hidden_units_2 = 500
+
+sequenceLength = 50
 
 dnaNumLetters = 4
 
-learning_rate = 0.1
+learning_rate = 0.0005
 
 batchSize = 100
 
@@ -39,7 +42,13 @@ dna_sequence_input_2 = tf.placeholder(tf.float32, [batchSize, sequenceLength, dn
 inputY = tf.placeholder(tf.float32, [batchSize, 2], name="together_plc")
 
 # Encoder
-encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(encoder_hidden_units, state_is_tuple=True)
+encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(encoder_hidden_size_1)
+
+# rnn_layers = [tf.nn.rnn_cell.LSTMCell(size) for size in [encoder_hidden_size_1, encoder_hidden_units]]
+
+# create a RNN cell composed sequentially of a number of RNNCells
+# encoder_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
+
 
 encoded_dataset = tf.map_fn(lambda x: tf.nn.dynamic_rnn(cell=encoder_cell,
                                                         inputs=x,
@@ -61,14 +70,18 @@ encoded_dna_sequence_2 = encoder_outputs[:, -1, :]
 
 feed_forward_inputX = tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
 
-w_1 = init_weights((3 * encoder_hidden_units, feed_forward_hidden_units))
-b1 = tf.Variable(np.zeros((1, feed_forward_hidden_units)), dtype=tf.float32)
+w1 = init_weights((3 * encoder_hidden_size_1, feed_forward_hidden_units_1))
+b1 = tf.Variable(np.zeros((1, feed_forward_hidden_units_1)), dtype=tf.float32)
+h1 = tf.nn.relu(tf.matmul(feed_forward_inputX, w1) + b1)
 
-w_2 = init_weights((feed_forward_hidden_units, 2))
-b2 = tf.Variable(np.zeros((1, 2)), dtype=tf.float32)
+w2 = init_weights((feed_forward_hidden_units_1, feed_forward_hidden_units_2))
+b2 = tf.Variable(np.zeros((1, feed_forward_hidden_units_2)), dtype=tf.float32)
+h2 = tf.nn.relu(tf.matmul(h1, w2) + b2)
 
-h = tf.nn.tanh(tf.matmul(feed_forward_inputX, w_1) + b1)
-output = tf.matmul(h, w_2) + b2
+w3 = init_weights((feed_forward_hidden_units_2, 2))
+b3 = tf.Variable(np.zeros((1, 2)), dtype=tf.float32)
+
+output = tf.matmul(h2, w3) + b3
 
 predictions = tf.nn.softmax(output, name="predictions")
 

@@ -5,8 +5,8 @@ import tree_parser
 import tree_utils
 
 tree_file = "dataset/20.2.tree"
-dna_sequence_file = "dataset/seq_20.2_"
-model_file = './models/learning_rate/'
+dna_sequence_file = "dataset/seq_50.2_"
+model_file = './models/50.2/'
 
 
 def write_to_file(losses, accuracy, avg_loss, avg_acc):
@@ -65,11 +65,11 @@ with tf.Session() as sess:
         avg_acc = sum(accs) / len(accs)
 
         average_acc += avg_acc
-        average_loss += average_loss
+        average_loss += avg_loss
 
         write_to_file("\n" + str(losses), "\n" + str(accs), str(avg_loss), str(avg_acc))
         losses.clear()
         accs.clear()
 
-    print("Accuracy ", average_acc )
-    print("Loss", average_loss )
+    print("Accuracy ", average_acc /5)
+    print("Loss", average_loss /5)
