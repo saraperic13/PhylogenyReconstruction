@@ -7,7 +7,7 @@ def sequence_to_one_hot_enc(seq):
     species = []
     for i in seq:
         if i in letter_dict:
-            one_hot_seq.append(letter_dict[i])
+            one_hot_seq.extend(letter_dict[i])
         else:
             species.append(i)
     species = "".join(species)

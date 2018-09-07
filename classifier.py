@@ -5,8 +5,8 @@ import tree_parser
 import tree_utils
 
 tree_file = "dataset/20.2.tree"
-dna_sequence_file = "dataset/seq_50.2_"
-model_file = './models/50.2/'
+dna_sequence_file = "dataset/seq_20.2_"
+model_file = './models/1000a/'
 
 
 def write_to_file(losses, accuracy, avg_loss, avg_acc):
