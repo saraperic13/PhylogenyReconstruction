@@ -8,7 +8,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_file = "dataset/seq_20.2.txt"
-model_path = "./models/2000/"
+model_path = "./models/radi1000/"
 
 encoder_hidden_size_1 = 100
 encoder_hidden_size_2 = 100
@@ -23,11 +23,11 @@ sequenceLength = 20
 
 dnaNumLetters = 4
 
-learning_rate = 0.002
+learning_rate = 0.02
 
 batchSize = 100
 
-numTrainingIters = 2000
+numTrainingIters = 1000
 
 
 def init_weights(shape):

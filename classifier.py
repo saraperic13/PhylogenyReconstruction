@@ -6,7 +6,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequence_file = "dataset/seq_20.2_"
-model_file = './models/2000/'
+model_file = './models/radi1000/'
 
 
 def write_to_file(losses, accuracy, avg_loss, avg_acc):
