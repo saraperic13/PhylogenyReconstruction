@@ -8,7 +8,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_file = "dataset/seq_20.2.txt"
-model_path = "./models/1000a/"
+model_path = "./models/2000/"
 
 encoder_hidden_size_1 = 100
 encoder_hidden_size_2 = 100
@@ -27,7 +27,7 @@ learning_rate = 0.002
 
 batchSize = 100
 
-numTrainingIters = 1000
+numTrainingIters = 2000
 
 
 def init_weights(shape):
@@ -46,6 +46,7 @@ def encode_sequence(sequence):
 
 
 tree = tree_parser.parse(tree_file)
+max_size_dataset = tree.get_number_of_leaves()
 
 data_input = tf.placeholder(tf.float32, [batchSize, None, sequenceLength * dnaNumLetters], name="encoder_dataset_plc")
 dna_sequence_input_1 = tf.placeholder(tf.float32, [batchSize, sequenceLength * dnaNumLetters],
@@ -142,7 +143,8 @@ with tf.Session() as sess:
 
     for step in range(numTrainingIters + 1):
 
-        dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data, batchSize)
+        dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data, batchSize,
+                                                                                               max_size_dataset)
 
         _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy = sess.run(
             [encoded_dataset, total_loss, training_alg, predictions, accuracy],

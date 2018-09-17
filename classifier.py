@@ -6,7 +6,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequence_file = "dataset/seq_20.2_"
-model_file = './models/1000a/'
+model_file = './models/2000/'
 
 
 def write_to_file(losses, accuracy, avg_loss, avg_acc):
@@ -20,6 +20,7 @@ def write_to_file(losses, accuracy, avg_loss, avg_acc):
 
 
 tree = tree_parser.parse(tree_file)
+max_size_dataset = tree.get_number_of_leaves()
 
 with tf.Session() as sess:
     tf.saved_model.loader.load(sess, ["phylogeny_reconstruction"], model_file)
@@ -44,7 +45,8 @@ with tf.Session() as sess:
 
         for step in range(100):
             dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
-                                                                                                   batchSize=100)
+                                                                                                   batchSize=100,
+                                                                                                   max_size_dataset=max_size_dataset)
 
             _accuracy, _loss = sess.run(
                 [accuracy, loss],
@@ -71,5 +73,5 @@ with tf.Session() as sess:
         losses.clear()
         accs.clear()
 
-    print("Accuracy ", average_acc /5)
-    print("Loss", average_loss /5)
+    print("Accuracy ", average_acc / 5)
+    print("Loss", average_loss / 5)

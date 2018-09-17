@@ -1,4 +1,6 @@
 import random
+import numpy as np
+
 
 
 def get_all_node_descendant_leaves(node, descendants):
@@ -31,17 +33,19 @@ def are_together(node_1, node_2, root):
     return [0, 1]
 
 
-def get_subroot_and_nodes(tree, data, batchSize):
-    dna_children_1, dna_children_2, together, dnas, dataset, descendants = [], [], [], [], [], []
+def get_subroot_and_nodes(tree, data, batchSize, max_size_dataset):
+    dna_children_1, dna_children_2, together, dataset = [], [], [], []
 
     for i in range(batchSize):
         subroot = tree.get_random_node()
-        descendants.clear()
-        dnas.clear()
+        descendants, dnas = [], []
         get_all_node_descendant_leaves(subroot, descendants)
 
         for child in descendants:
             dnas.append(data[child.name][0])
+
+        for i in range(max_size_dataset - len(descendants)):
+            dnas.append(np.zeros(80, dtype=np.int64))
 
         dataset.append(dnas)
 
