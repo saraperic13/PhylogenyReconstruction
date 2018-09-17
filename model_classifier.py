@@ -7,24 +7,24 @@ import tree_parser
 import tree_utils
 
 tree_file = "dataset/20.2.tree"
-dna_sequences_file = "dataset/seq_50.2.txt"
-model_path = "./models/50.2/"
+dna_sequences_file = "dataset/seq_20.2.txt"
+model_path = "./models/2500/"
 
-encoder_hidden_size_1 = 128
+encoder_hidden_size_1 = 100
 
 # encoder_hidden_units = 256
-feed_forward_hidden_units_1 = 200
-feed_forward_hidden_units_2 = 500
+feed_forward_hidden_units_1 = 1000
+feed_forward_hidden_units_2 = 1000
 
-sequenceLength = 50
+sequenceLength = 20
 
 dnaNumLetters = 4
 
-learning_rate = 0.0005
+learning_rate = 0.02
 
 batchSize = 100
 
-numTrainingIters = 1000
+numTrainingIters = 2500
 
 
 def init_weights(shape):
@@ -33,6 +33,7 @@ def init_weights(shape):
 
 
 tree = tree_parser.parse(tree_file)
+max_size_dataset = tree.get_number_of_leaves()
 
 data_input = tf.placeholder(tf.float32, [batchSize, None, sequenceLength, dnaNumLetters], name="encoder_dataset_plc")
 dna_sequence_input_1 = tf.placeholder(tf.float32, [batchSize, sequenceLength, dnaNumLetters],
@@ -97,7 +98,7 @@ builder = tf.saved_model.builder.SavedModelBuilder(model_path)
 
 signature = predict_signature_def(
     inputs={'encoder_dataset_plc': encoded_dataset, 'encoder_dna_seq_1_plc': dna_sequence_input_1,
-            'encoder_dna_seq_2_plc': dna_sequence_input_2, 'together_plc':inputY},
+            'encoder_dna_seq_2_plc': dna_sequence_input_2, 'together_plc': inputY},
     outputs={'predictions': predictions})
 
 with tf.Session() as sess:
@@ -106,7 +107,8 @@ with tf.Session() as sess:
 
     for step in range(numTrainingIters + 1):
 
-        dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data, batchSize)
+        dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data, batchSize,
+                                                                                               max_size_dataset)
 
         _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy = sess.run(
             [encoded_dataset, total_loss, training_alg, predictions, accuracy],
