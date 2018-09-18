@@ -8,7 +8,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_file = "dataset/seq_20.2.txt"
-model_path = "./models/radi1000/"
+model_path = "./models/asaa1/"
 
 encoder_hidden_size_1 = 100
 encoder_hidden_size_2 = 100
@@ -43,6 +43,11 @@ def encode_sequence(sequence):
     enc_output = tf.matmul(enc_h2, enc_w3) + enc_b3
 
     return tf.nn.relu(enc_output)
+
+
+def encode_sequence_2(sequence):
+    return tf.squeeze(tf.nn.relu(tf.matmul(enc_2_w1, sequence) + enc_2_b1))
+
 
 
 tree = tree_parser.parse(tree_file)
@@ -90,14 +95,22 @@ enc_b2 = tf.Variable(np.zeros((1, encoder_hidden_size_2)), dtype=tf.float32)
 enc_w3 = init_weights((encoder_hidden_size_2, encoder_output_size))
 enc_b3 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
 
+
 encoded_dna_sequence_1 = encode_sequence(dna_sequence_input_1)
 encoded_dna_sequence_2 = encode_sequence(dna_sequence_input_2)
 
 encoded_dataset = tf.map_fn(lambda x: encode_sequence(x), data_input,
                             dtype=tf.float32)
 
-encoded_dataset = tf.map_fn(lambda x: tf.reduce_mean(x, axis=0), encoded_dataset,
+enc_2_w1 = init_weights((1, sequenceLength))
+enc_2_b1 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
+
+encoded_dataset = tf.map_fn(lambda x: encode_sequence_2(x), encoded_dataset,
                             dtype=tf.float32)
+
+
+# encoded_dataset = tf.map_fn(lambda x: tf.reduce_mean(x, axis=0), encoded_dataset,
+#                             dtype=tf.float32)
 
 # Classifier
 
