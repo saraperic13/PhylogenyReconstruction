@@ -30,3 +30,10 @@ def read_data(file_name):
 
                 data[species].append(np.array(sequence))
     return data
+
+
+def get_dna_sequences(data, size):
+    myInts = np.random.random_integers(1, len(data), size)
+    return np.squeeze(np.stack(data[str(i)] for i in myInts.flat))
+
+

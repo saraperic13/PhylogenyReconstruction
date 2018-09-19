@@ -8,7 +8,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_file = "dataset/seq_20.2.txt"
-model_path = "./models/2500/"
+model_path = "./models/da/"
 
 encoder_hidden_size_1 = 100
 
@@ -118,6 +118,7 @@ with tf.Session() as sess:
                 dna_sequence_input_2: dna_child_2,
                 inputY: together
             })
+
         if step % 50 == 0:
             print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
                 step, _totalLoss, _accuracy))
