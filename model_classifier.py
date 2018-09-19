@@ -8,7 +8,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_file = "dataset/seq_20.2.txt"
-model_path = "./models/da/"
+model_path = "./models/jk/"
 
 encoder_hidden_size_1 = 100
 
