@@ -7,8 +7,8 @@ import tree_parser
 import tree_utils
 
 tree_file = "dataset/20.2.tree"
-dna_sequences_file = "dataset/seq_20.2.txt"
-model_path = "./models/radi1000/"
+dna_sequences_files = "dataset/seq_20.2_1.txt"
+model_path = "./models/aaaa/"
 
 encoder_hidden_size_1 = 100
 encoder_hidden_size_2 = 100
@@ -27,7 +27,7 @@ learning_rate = 0.02
 
 batchSize = 100
 
-numTrainingIters = 1000
+numTrainingIters = 1500
 
 
 def init_weights(shape):
@@ -139,7 +139,7 @@ signature = predict_signature_def(
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
-    data = load_data_utils.read_data(dna_sequences_file)
+    data = load_data_utils.read_data(dna_sequences_files)
 
     for step in range(numTrainingIters + 1):
 

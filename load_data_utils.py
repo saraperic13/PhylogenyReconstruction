@@ -29,4 +29,5 @@ def read_data(file_name):
                     data[species] = []
 
                 data[species].append(np.array(sequence))
+
     return data
