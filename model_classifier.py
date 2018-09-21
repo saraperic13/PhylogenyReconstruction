@@ -8,13 +8,12 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_files = "dataset/seq_100.2_train.txt"
-model_path = "./models/dasd/"
+model_path = "./models/1/"
 
-encoder_hidden_size_1 = 100
-encoder_hidden_size_2 = 100
+# encoder_hidden_size_1 = 100
+# encoder_hidden_size_2 = 100
 encoder_output_size = 100
 
-# encoder_hidden_units = 256
 feed_forward_hidden_units_1 = 700
 feed_forward_hidden_units_2 = 1000
 feed_forward_hidden_units_3 = 1000
@@ -38,11 +37,11 @@ def init_weights(shape):
 def encode_sequence(sequence):
     enc_h1 = tf.nn.relu(tf.matmul(sequence, enc_w1) + enc_b1)
 
-    enc_h2 = tf.nn.relu(tf.matmul(enc_h1, enc_w2) + enc_b2)
+    # enc_h2 = tf.nn.relu(tf.matmul(enc_h1, enc_w2) + enc_b2)
 
-    enc_output = tf.matmul(enc_h2, enc_w3) + enc_b3
+    # enc_output = tf.matmul(enc_h2, enc_w3) + enc_b3
 
-    return tf.nn.relu(enc_output)
+    return tf.nn.relu(enc_h1)
 
 
 tree = tree_parser.parse(tree_file)
@@ -55,40 +54,15 @@ dna_sequence_input_2 = tf.placeholder(tf.float32, [batchSize, sequenceLength * d
                                       name="encoder_dna_seq_2_plc")
 inputY = tf.placeholder(tf.float32, [batchSize, 2], name="together_plc")
 
-# Encoder
-# encoder_cell = tf.nn.rnn_cell.BasicLSTMCell(encoder_hidden_size_1)
 
-# rnn_layers = [tf.nn.rnn_cell.LSTMCell(size) for size in [encoder_hidden_size_1, encoder_hidden_units]]
+enc_w1 = init_weights((sequenceLength * dnaNumLetters, encoder_output_size))
+enc_b1 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
 
-# create a RNN cell composed sequentially of a number of RNNCells
-# encoder_cell = tf.nn.rnn_cell.MultiRNNCell(rnn_layers)
+# enc_w2 = init_weights((encoder_hidden_size_1, encoder_hidden_size_2))
+# enc_b2 = tf.Variable(np.zeros((1, encoder_hidden_size_2)), dtype=tf.float32)
 
-#
-# encoded_dataset = tf.map_fn(lambda x: tf.nn.dynamic_rnn(cell=encoder_cell,
-#                                                         inputs=x,
-#                                                         dtype=tf.float32, time_major=False)[0][:, -1, :], data_input,
-#                             dtype=tf.float32)
-#
-# encoded_dataset = tf.map_fn(lambda x: tf.reduce_mean(x, axis=0), encoded_dataset,
-#                             dtype=tf.float32)
-#
-# encoder_outputs, _ = tf.nn.dynamic_rnn(cell=encoder_cell,
-#                                        inputs=dna_sequence_input_1, dtype=tf.float32)
-# encoded_dna_sequence_1 = encoder_outputs[:, -1, :]
-#
-# encoder_outputs, _ = tf.nn.dynamic_rnn(cell=encoder_cell,
-#                                        inputs=dna_sequence_input_2, dtype=tf.float32)
-# encoded_dna_sequence_2 = encoder_outputs[:, -1, :]
-
-
-enc_w1 = init_weights((sequenceLength * dnaNumLetters, encoder_hidden_size_1))
-enc_b1 = tf.Variable(np.zeros((1, encoder_hidden_size_1)), dtype=tf.float32)
-
-enc_w2 = init_weights((encoder_hidden_size_1, encoder_hidden_size_2))
-enc_b2 = tf.Variable(np.zeros((1, encoder_hidden_size_2)), dtype=tf.float32)
-
-enc_w3 = init_weights((encoder_hidden_size_2, encoder_output_size))
-enc_b3 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
+# enc_w3 = init_weights((encoder_hidden_size_2, encoder_output_size))
+# enc_b3 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
 
 encoded_dna_sequence_1 = encode_sequence(dna_sequence_input_1)
 encoded_dna_sequence_2 = encode_sequence(dna_sequence_input_2)
