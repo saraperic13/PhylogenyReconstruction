@@ -5,10 +5,12 @@ import tree_parser
 import tree_utils
 
 tree_file = "dataset/20.2.tree"
-dna_sequence_file = "dataset/seq.2_10_test.txt"
-model_file = './models/aaaa/'
+dna_sequence_file = "dataset/seq_100.2.txt"
+model_file = './models/dasd/'
 
 dataset_size = 10
+sequence_length = 100
+batch_size = 100
 
 
 def write_to_file(losses, accuracy, avg_loss, avg_acc):
@@ -41,10 +43,11 @@ with tf.Session() as sess:
 
     data = load_data_utils.read_data(dna_sequence_file)
 
-    for step in range(5000):
+    for step in range(1000):
         dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
-                                                                                               batchSize=100,
-                                                                                               max_size_dataset=max_size_dataset)
+                                                                                               batchSize=batch_size,
+                                                                                               max_size_dataset=max_size_dataset,
+                                                                                               sequence_length=sequence_length)
 
         _accuracy, _loss = sess.run(
             [accuracy, loss],
@@ -63,7 +66,6 @@ with tf.Session() as sess:
 
     avg_loss = sum(losses) / len(losses)
     avg_acc = sum(accs) / len(accs)
-
 
     write_to_file("\n" + str(losses), "\n" + str(accs), str(avg_loss), str(avg_acc))
     losses.clear()
