@@ -33,7 +33,7 @@ def are_together(node_1, node_2, root):
     return [0, 1]
 
 
-def get_subroot_and_nodes(tree, data, batchSize, max_size_dataset):
+def get_subroot_and_nodes(tree, data, batchSize, max_size_dataset, sequence_length, dna_num_letters=4):
     dna_children_1, dna_children_2, together, dataset = [], [], [], []
 
     for i in range(batchSize):
@@ -41,18 +41,20 @@ def get_subroot_and_nodes(tree, data, batchSize, max_size_dataset):
         descendants, dnas = [], []
         get_all_node_descendant_leaves(subroot, descendants)
 
+        random_dataset_idx = random.randint(0, len(data[descendants[0].name])-1)
+
         for child in descendants:
-            dnas.append(data[child.name][0])
+            dnas.append(data[child.name][random_dataset_idx])
 
         for i in range(max_size_dataset - len(descendants)):
-            dnas.append(np.zeros(80, dtype=np.int64))
+            dnas.append(np.zeros(dna_num_letters*sequence_length, dtype=np.int64))
 
         dataset.append(dnas)
 
         leaves = get_random_descendants(descendants)
         together.append(are_together(leaves[0], leaves[1], subroot))
 
-        dna_children_1.append(data[leaves[0].name][0])
-        dna_children_2.append(data[leaves[1].name][0])
+        dna_children_1.append(data[leaves[0].name][random_dataset_idx])
+        dna_children_2.append(data[leaves[1].name][random_dataset_idx])
 
     return dataset, dna_children_1, dna_children_2, together
