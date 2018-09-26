@@ -6,7 +6,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequence_file = "dataset/seq_100.2.txt"
-model_file = './models/1/'
+model_file = './models/70/'
 
 dataset_size = 10
 sequence_length = 100
@@ -44,7 +44,7 @@ with tf.Session() as sess:
     data = load_data_utils.read_data(dna_sequence_file)
 
     for step in range(1000):
-        dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
+        subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
                                                                                                batchSize=batch_size,
                                                                                                max_size_dataset=max_size_dataset,
                                                                                                sequence_length=sequence_length)

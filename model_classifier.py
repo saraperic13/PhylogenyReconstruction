@@ -8,11 +8,9 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_files = "dataset/seq_100.2_train.txt"
-model_path = "./models/1/"
+model_path = "./models/kj/"
 
-# encoder_hidden_size_1 = 100
-# encoder_hidden_size_2 = 100
-encoder_output_size = 100
+encoder_output_size = 70
 
 feed_forward_hidden_units_1 = 700
 feed_forward_hidden_units_2 = 1000
@@ -26,7 +24,7 @@ learning_rate = 0.02
 
 batchSize = 100
 
-numTrainingIters = 5000
+numTrainingIters = 7000
 
 
 def init_weights(shape):
@@ -35,12 +33,7 @@ def init_weights(shape):
 
 
 def encode_sequence(sequence):
-    enc_h1 = tf.nn.relu(tf.matmul(sequence, enc_w1) + enc_b1)
-
-    # enc_h2 = tf.nn.relu(tf.matmul(enc_h1, enc_w2) + enc_b2)
-
-    # enc_output = tf.matmul(enc_h2, enc_w3) + enc_b3
-
+    enc_h1 = tf.matmul(sequence, enc_w1) + enc_b1
     return tf.nn.relu(enc_h1)
 
 
@@ -57,12 +50,6 @@ inputY = tf.placeholder(tf.float32, [batchSize, 2], name="together_plc")
 
 enc_w1 = init_weights((sequenceLength * dnaNumLetters, encoder_output_size))
 enc_b1 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
-
-# enc_w2 = init_weights((encoder_hidden_size_1, encoder_hidden_size_2))
-# enc_b2 = tf.Variable(np.zeros((1, encoder_hidden_size_2)), dtype=tf.float32)
-
-# enc_w3 = init_weights((encoder_hidden_size_2, encoder_output_size))
-# enc_b3 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
 
 encoded_dna_sequence_1 = encode_sequence(dna_sequence_input_1)
 encoded_dna_sequence_2 = encode_sequence(dna_sequence_input_2)
@@ -117,7 +104,7 @@ with tf.Session() as sess:
 
     for step in range(numTrainingIters + 1):
 
-        dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data, batchSize,
+        subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data, batchSize,
                                                                                                max_size_dataset,
                                                                                                sequence_length=sequenceLength)
 

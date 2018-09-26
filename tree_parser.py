@@ -6,7 +6,7 @@ from tree import Tree
 def load_tree(node, tree):
     if not node.name:
         tree.increment_number_of_named()
-        node.name = tree.get_number_of_named()
+        node.name = str(tree.get_number_of_named())
 
     tree.add_node(node)
 
