@@ -45,10 +45,10 @@ def get_subroot_and_nodes(tree, data, batchSize, max_size_dataset, sequence_leng
         random_dataset_idx = random.randint(0, len(data[descendants[0].name]) - 1)
 
         for child in descendants:
-            dnas.extend(data[child.name][random_dataset_idx])
+            dnas.append(data[child.name][random_dataset_idx])
 
         for i in range(max_size_dataset - len(descendants)):
-            dnas.extend(np.zeros(dna_num_letters * sequence_length, dtype=np.int64))
+            dnas.append(np.zeros(dna_num_letters * sequence_length, dtype=np.int64))
 
         dataset.append(dnas)
         if subroot.name in data:

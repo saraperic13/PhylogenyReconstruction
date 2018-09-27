@@ -8,7 +8,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_files = "dataset/seq_100.2_train.txt"
-model_path = "./models/kj/"
+model_path = "./models/10000/"
 
 encoder_output_size = 70
 
@@ -24,7 +24,7 @@ learning_rate = 0.02
 
 batchSize = 100
 
-numTrainingIters = 7000
+numTrainingIters = 10000
 
 
 def init_weights(shape):
@@ -46,7 +46,6 @@ dna_sequence_input_1 = tf.placeholder(tf.float32, [batchSize, sequenceLength * d
 dna_sequence_input_2 = tf.placeholder(tf.float32, [batchSize, sequenceLength * dnaNumLetters],
                                       name="encoder_dna_seq_2_plc")
 inputY = tf.placeholder(tf.float32, [batchSize, 2], name="together_plc")
-
 
 enc_w1 = init_weights((sequenceLength * dnaNumLetters, encoder_output_size))
 enc_b1 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
@@ -88,7 +87,7 @@ total_loss = tf.reduce_mean(losses, name="loss")
 
 training_alg = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 
-correct_pred = tf.equal(tf.round(predictions), inputY)
+correct_pred = tf.equal(tf.argmax(predictions, axis=1), tf.argmax(inputY, axis=1))
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32), name="accuracy")
 
 builder = tf.saved_model.builder.SavedModelBuilder(model_path)
@@ -100,13 +99,15 @@ signature = predict_signature_def(
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+    sess.run(tf.local_variables_initializer())
     data = load_data_utils.read_data(dna_sequences_files)
 
     for step in range(numTrainingIters + 1):
 
-        subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data, batchSize,
-                                                                                               max_size_dataset,
-                                                                                               sequence_length=sequenceLength)
+        subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
+                                                                                                         batchSize,
+                                                                                                         max_size_dataset,
+                                                                                                         sequence_length=sequenceLength)
 
         _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy = sess.run(
             [encoded_dataset, total_loss, training_alg, predictions, accuracy],
