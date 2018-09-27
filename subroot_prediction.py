@@ -6,7 +6,7 @@ import tree_utils
 
 tree_file = "dataset/20.2.tree"
 dna_sequence_file = "dataset/internal_1.2.txt"
-model_file = './subroot-prediction-models/100/'
+model_file = './subroot-prediction-models/radi2/'
 
 dataset_size = 10
 sequence_length = 100
@@ -41,7 +41,7 @@ with tf.Session() as sess:
 
     data = load_data_utils.read_data(dna_sequence_file)
 
-    for step in range(20):
+    for step in range(100):
         subroots, dna_descendants, _, _, _ = tree_utils.get_subroot_and_nodes(tree, data,
                                                                               batchSize=batch_size,
                                                                               max_size_dataset=max_size_dataset,

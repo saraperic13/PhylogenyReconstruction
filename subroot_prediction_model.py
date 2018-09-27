@@ -7,15 +7,12 @@ import tree_parser
 import tree_utils
 
 tree_file = "dataset/20.2.tree"
-dna_sequences_files = "dataset/internal_100.2.txt"
-model_path = "./subroot-prediction-models/100/"
+dna_sequences_files = "dataset/internal_1.2.txt"
+model_path = "./subroot-prediction-models/tf/"
 
 encoder_output_size = 100
 
 sequenceLength = 100
-
-feed_forward_hidden_units_2 = 1000
-feed_forward_hidden_units_3 = 1000
 
 dnaNumLetters = 4
 
@@ -64,13 +61,19 @@ for network in range(100):
 
     predictions = tf.nn.softmax(output, name="predictions")
 
-    losses = tf.nn.softmax_cross_entropy_with_logits(labels=subroot_sequences[:, idx:idx + 4], logits=output)
+    losses = tf.nn.softmax_cross_entropy_with_logits_v2(labels=subroot_sequences[:, idx:idx + 4], logits=output)
     total_loss = tf.reduce_mean(losses, name="loss")
 
     training_alg = tf.train.AdagradOptimizer(learning_rate).minimize(total_loss)
 
-    correct_pred = tf.equal(tf.round(predictions), subroot_sequences[:, idx:idx + 4])
+    aa = tf.argmax(predictions, axis=1)
+    bb = tf.argmax(subroot_sequences[:, idx:idx + 4], axis=1)
+    correct_pred = tf.equal(tf.argmax(predictions, axis=1), tf.argmax(subroot_sequences[:, idx:idx + 4], axis=1))
+
     accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32), name="accuracy")
+
+    tf_accuracy = tf.metrics.accuracy(subroot_sequences[:, idx:idx + 4], predictions, name="tf_accuracy")
+
     idx += 4
 
 builder = tf.saved_model.builder.SavedModelBuilder(model_path)
@@ -81,6 +84,7 @@ signature = predict_signature_def(
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
+    sess.run(tf.local_variables_initializer())
     data = load_data_utils.read_data(dna_sequences_files)
 
     for step in range(numTrainingIters + 1):
@@ -89,15 +93,16 @@ with tf.Session() as sess:
                                                                               max_size_dataset,
                                                                               sequence_length=sequenceLength)
 
-        _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy = sess.run(
-            [encoded_dataset, total_loss, training_alg, predictions, accuracy],
+        _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy,a,b, _tf_accuracy = sess.run(
+            [encoded_dataset, total_loss, training_alg, predictions, accuracy, aa, bb, tf_accuracy],
             feed_dict={
                 data_input: dna_descendants,
                 subroot_sequences: subroots
             })
+
         if step % 50 == 0:
-            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
-                step, _totalLoss, _accuracy))
+            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%} \tTF Acc: {:.2%}".format(
+                step, _totalLoss, _accuracy, _tf_accuracy))
 
     builder.add_meta_graph_and_variables(sess=sess,
                                          tags=["subroot_prediction"],
