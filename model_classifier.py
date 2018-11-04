@@ -6,9 +6,9 @@ import load_data_utils
 import tree_parser
 import tree_utils
 
-tree_file = "dataset/20.2.tree"
-dna_sequences_files = "dataset/seq_100.2_train.txt"
-model_path = "./models/10000/"
+tree_file = "dataset/100-trees/100_20.2.tree"
+dna_sequences_files = "dataset/100-trees/seq_100_20.2.txt"
+model_path = "./models/trees/"
 
 encoder_output_size = 70
 
@@ -24,7 +24,7 @@ learning_rate = 0.02
 
 batchSize = 100
 
-numTrainingIters = 10000
+numTrainingIters = 500
 
 
 def init_weights(shape):
@@ -37,8 +37,8 @@ def encode_sequence(sequence):
     return tf.nn.relu(enc_h1)
 
 
-tree = tree_parser.parse(tree_file)
-max_size_dataset = tree.get_number_of_leaves()
+trees = tree_parser.parse(tree_file)
+max_size_dataset = trees[0].get_number_of_leaves()
 
 data_input = tf.placeholder(tf.float32, [batchSize, None, sequenceLength * dnaNumLetters], name="encoder_dataset_plc")
 dna_sequence_input_1 = tf.placeholder(tf.float32, [batchSize, sequenceLength * dnaNumLetters],
@@ -102,26 +102,31 @@ with tf.Session() as sess:
     sess.run(tf.local_variables_initializer())
     data = load_data_utils.read_data(dna_sequences_files)
 
-    for step in range(numTrainingIters + 1):
+    i = 0
+    for tree in trees:
 
-        subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
-                                                                                                         batchSize,
-                                                                                                         max_size_dataset,
-                                                                                                         sequence_length=sequenceLength)
+        for step in range(numTrainingIters + 1):
 
-        _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy = sess.run(
-            [encoded_dataset, total_loss, training_alg, predictions, accuracy],
-            feed_dict={
-                data_input: dna_descendants,
-                dna_sequence_input_1: dna_child_1,
-                dna_sequence_input_2: dna_child_2,
-                inputY: together
-            })
-        if step % 50 == 0:
-            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
-                step, _totalLoss, _accuracy))
+            subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
+                                                                                                             batchSize,
+                                                                                                             max_size_dataset,
+                                                                                                             sequence_length=sequenceLength,
+                                                                                                             dataset_index=i)
 
-    print(tree.randomly_selected)
+            _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy = sess.run(
+                [encoded_dataset, total_loss, training_alg, predictions, accuracy],
+                feed_dict={
+                    data_input: dna_descendants,
+                    dna_sequence_input_1: dna_child_1,
+                    dna_sequence_input_2: dna_child_2,
+                    inputY: together
+                })
+            if step % 50 == 0:
+                print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
+                    step, _totalLoss, _accuracy))
+
+        print(tree.randomly_selected)
+        i += 1
 
     builder.add_meta_graph_and_variables(sess=sess,
                                          tags=["phylogeny_reconstruction"],

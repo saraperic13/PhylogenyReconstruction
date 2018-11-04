@@ -16,7 +16,13 @@ def load_tree(node, tree):
 
 def parse(file_name):
     with io.open(file_name, encoding='utf8') as fp:
-        loaded_tree = load(fp)[0]
-        tree = Tree(len(loaded_tree.get_leaves()))
-        load_tree(loaded_tree, tree)
-    return tree
+        loaded_trees = load(fp)
+        trees = []
+        for t in loaded_trees:
+            tree = Tree(len(t.get_leaves()))
+            load_tree(t, tree)
+            trees.append(tree)
+    return trees
+
+
+# parse("dataset/100-trees/100_20.2.tree")

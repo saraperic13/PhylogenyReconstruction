@@ -3,9 +3,9 @@ import random
 
 class Tree:
 
-    def __init__(self, number_of_leaves, nodes=[]):
+    def __init__(self, number_of_leaves):
         self.randomly_selected = {}
-        self.nodes = nodes
+        self.nodes = []
         self.number_of_named = number_of_leaves
         self.number_of_leaves = number_of_leaves
 

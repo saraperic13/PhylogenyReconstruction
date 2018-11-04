@@ -4,9 +4,9 @@ import load_data_utils
 import tree_parser
 import tree_utils
 
-tree_file = "dataset/20.2.tree"
-dna_sequence_file = "dataset/seq_100.2.txt"
-model_file = './models/10000/'
+tree_file = "dataset/100-trees/50_20.2.tree"
+dna_sequence_file = "dataset/100-trees/seq_50_20.2.txt"
+model_file = './models/trees/'
 
 dataset_size = 10
 sequence_length = 100
@@ -23,8 +23,8 @@ def write_to_file(losses, accuracy, avg_loss, avg_acc):
         f.write(accuracy)
 
 
-tree = tree_parser.parse(tree_file)
-max_size_dataset = tree.get_number_of_leaves()
+trees = tree_parser.parse(tree_file)
+max_size_dataset = trees[0].get_number_of_leaves()
 
 with tf.Session() as sess:
     tf.saved_model.loader.load(sess, ["phylogeny_reconstruction"], model_file)
@@ -43,26 +43,31 @@ with tf.Session() as sess:
 
     data = load_data_utils.read_data(dna_sequence_file)
 
-    for step in range(1000):
-        subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
-                                                                                                         batchSize=batch_size,
-                                                                                                         max_size_dataset=max_size_dataset,
-                                                                                                         sequence_length=sequence_length)
+    i = 0
+    for tree in trees:
 
-        _accuracy, _loss = sess.run(
-            [accuracy, loss],
-            feed_dict={
-                encoder_dataset_plc: dna_descendants,
-                encoder_dna_seq_1_plc: dna_child_1,
-                encoder_dna_seq_2_plc: dna_child_2,
-                together_plc: together
-            })
+        for step in range(100):
+            subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
+                                                                                                             batchSize=batch_size,
+                                                                                                             max_size_dataset=max_size_dataset,
+                                                                                                             sequence_length=sequence_length,
+                                                                                                             dataset_index=i)
 
-        losses.append(_loss)
-        accs.append(_accuracy)
+            _accuracy, _loss = sess.run(
+                [accuracy, loss],
+                feed_dict={
+                    encoder_dataset_plc: dna_descendants,
+                    encoder_dna_seq_1_plc: dna_child_1,
+                    encoder_dna_seq_2_plc: dna_child_2,
+                    together_plc: together
+                })
 
-        print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
-            step, _loss, _accuracy))
+            losses.append(_loss)
+            accs.append(_accuracy)
+
+            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
+                step, _loss, _accuracy))
+        i += 1
 
     avg_loss = sum(losses) / len(losses)
     avg_acc = sum(accs) / len(accs)
