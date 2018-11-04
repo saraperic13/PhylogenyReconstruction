@@ -8,7 +8,7 @@ import tree_utils
 
 tree_file = "dataset/100-trees/100_20.2.tree"
 dna_sequences_files = "dataset/100-trees/seq_100_20.2.txt"
-model_path = "./models/trees/"
+model_path = "./models/2/"
 
 encoder_output_size = 70
 
@@ -24,7 +24,7 @@ learning_rate = 0.02
 
 batchSize = 100
 
-numTrainingIters = 500
+numTrainingIters = 100
 
 
 def init_weights(shape):

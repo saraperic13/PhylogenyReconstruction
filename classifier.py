@@ -6,7 +6,7 @@ import tree_utils
 
 tree_file = "dataset/100-trees/50_20.2.tree"
 dna_sequence_file = "dataset/100-trees/seq_50_20.2.txt"
-model_file = './models/trees/'
+model_file = './models/2/'
 
 dataset_size = 10
 sequence_length = 100
