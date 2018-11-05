@@ -5,8 +5,8 @@ import numpy as np
 
 class TrainingDataModel:
 
-    def __init__(self, tree, dna_sequences, dna_sequence_length,
-                 dataset_index, dna_num_letters=4):
+    def __init__(self, tree, dna_sequences, dna_sequence_length, dna_num_letters=4,
+                 dataset_index=None):
         self.dna_subroots = []
         self.dna_sequences_right_child = []
         self.dna_sequences_left_child = []
@@ -38,11 +38,11 @@ class TrainingDataModel:
         dnas = []
         for child in descendants:
             # TODO extend
-            dnas.append(self.get_dna_of_selected_node(child))
+            dnas.extend(self.get_dna_of_selected_node(child))
 
         for i in range(self.dataset_size - len(descendants)):
             # TODO extend
-            dnas.append(
+            dnas.extend(
                 np.zeros(self.dna_num_letters * self.dna_sequence_length, dtype=np.int64))
 
         self.descendants_dna_sequences.append(dnas)

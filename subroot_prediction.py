@@ -3,28 +3,17 @@ import tensorflow as tf
 import load_data_utils
 import tree_parser
 import tree_utils
+from training_data_model import TrainingDataModel
 
 tree_file = "dataset/20.2.tree"
 dna_sequence_file = "dataset/internal_1.2.txt"
-model_file = './subroot-prediction-models/radi2/'
+model_file = './subroot-prediction-models/10/'
 
-dataset_size = 10
 sequence_length = 100
 batch_size = 100
-#
-#
-# def write_to_file(losses, accuracy, avg_loss, avg_acc):
-#     with open("test/test_loss.txt", "a") as f:
-#         f.write("\n\n" + avg_loss)
-#         f.write(losses)
-#
-#     with open("test/test_acc.txt", "a") as f:
-#         f.write("\n\n''" + avg_acc)
-#         f.write(accuracy)
+dna_num_letters = 4
 
-
-tree = tree_parser.parse(tree_file)
-max_size_dataset = tree.get_number_of_leaves()
+tree = tree_parser.parse(tree_file)[0]
 
 with tf.Session() as sess:
     tf.saved_model.loader.load(sess, ["subroot_prediction"], model_file)
@@ -42,16 +31,16 @@ with tf.Session() as sess:
     data = load_data_utils.read_data(dna_sequence_file)
 
     for step in range(100):
-        subroots, dna_descendants, _, _, _ = tree_utils.get_batch_sized_data(tree, data,
-                                                                             batch_size=batch_size,
-                                                                             max_size_dataset=max_size_dataset,
-                                                                             sequence_length=sequence_length)
+        training_data_model = TrainingDataModel(tree, data, sequence_length,
+                                                dna_num_letters)
+
+        tree_utils.get_batch_sized_data(batch_size, training_data_model)
 
         _accuracy, _loss = sess.run(
             [accuracy, loss],
             feed_dict={
-                encoder_dataset_plc: dna_descendants,
-                subroot_sequences: subroots
+                encoder_dataset_plc: training_data_model.descendants_dna_sequences,
+                subroot_sequences: training_data_model.dna_subroots
             })
 
         losses.append(_loss)

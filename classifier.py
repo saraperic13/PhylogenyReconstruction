@@ -49,8 +49,8 @@ with tf.Session() as sess:
     for tree in trees:
 
         for step in range(100):
-            training_data_model = TrainingDataModel(tree, data, sequence_length, i,
-                                                    dna_num_letters)
+            training_data_model = TrainingDataModel(tree, data, sequence_length,
+                                                    dna_num_letters, dataset_index=i)
 
             tree_utils.get_batch_sized_data(batch_size, training_data_model)
             _accuracy, _loss = sess.run(

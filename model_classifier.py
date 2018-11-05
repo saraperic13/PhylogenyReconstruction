@@ -41,7 +41,8 @@ def encode_sequence(sequence):
 trees = tree_parser.parse(tree_file)
 max_size_dataset = trees[0].get_number_of_leaves()
 
-data_input = tf.placeholder(tf.float32, [batch_size, None, sequence_length * dna_num_letters], name="encoder_dataset_plc")
+data_input = tf.placeholder(tf.float32, [batch_size, None, sequence_length * dna_num_letters],
+                            name="encoder_dataset_plc")
 dna_sequence_input_1 = tf.placeholder(tf.float32, [batch_size, sequence_length * dna_num_letters],
                                       name="encoder_dna_seq_1_plc")
 dna_sequence_input_2 = tf.placeholder(tf.float32, [batch_size, sequence_length * dna_num_letters],
@@ -109,8 +110,8 @@ with tf.Session() as sess:
 
         for step in range(num_training_iters + 1):
 
-            training_data_model = TrainingDataModel(tree, data, sequence_length, i,
-                                                    dna_num_letters)
+            training_data_model = TrainingDataModel(tree, data, sequence_length,
+                                                    dna_num_letters, dataset_index=i)
 
             tree_utils.get_batch_sized_data(batch_size, training_data_model)
 

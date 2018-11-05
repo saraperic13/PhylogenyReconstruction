@@ -5,22 +5,23 @@ from tensorflow.python.saved_model.signature_def_utils_impl import predict_signa
 import load_data_utils
 import tree_parser
 import tree_utils
+from training_data_model import TrainingDataModel
 
 tree_file = "dataset/20.2.tree"
 dna_sequences_files = "dataset/internal_1.2.txt"
-model_path = "./subroot-prediction-models/tf/"
+model_path = "./subroot-prediction-models/10/"
 
 encoder_output_size = 100
 
-sequenceLength = 100
+sequence_length = 100
 
-dnaNumLetters = 4
+dna_num_letters = 4
 
 learning_rate = 0.02
 
-batchSize = 100
+batch_size = 100
 
-numTrainingIters = 1000
+numTrainingIters = 10
 
 
 def init_weights(shape):
@@ -33,16 +34,16 @@ def encode_sequence(sequence):
     return tf.nn.relu(enc_h1)
 
 
-tree = tree_parser.parse(tree_file)
+tree = tree_parser.parse(tree_file)[0]
 max_size_dataset = tree.get_number_of_leaves()
 feed_forward_hidden_units_1 = 50
 
-data_input = tf.placeholder(tf.float32, [batchSize, max_size_dataset * sequenceLength * dnaNumLetters],
+data_input = tf.placeholder(tf.float32, [batch_size, max_size_dataset * sequence_length * dna_num_letters],
                             name="encoder_dataset_plc")
 
-subroot_sequences = tf.placeholder(tf.float32, [batchSize, sequenceLength * dnaNumLetters], name="subroot_sequences")
+subroot_sequences = tf.placeholder(tf.float32, [batch_size, sequence_length * dna_num_letters], name="subroot_sequences")
 
-enc_w1 = init_weights((max_size_dataset * sequenceLength * dnaNumLetters, encoder_output_size))
+enc_w1 = init_weights((max_size_dataset * sequence_length * dna_num_letters, encoder_output_size))
 enc_b1 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
 
 # encoded_dataset = tf.map_fn(lambda x: encode_sequence(x), data_input,
@@ -55,8 +56,8 @@ h1 = tf.nn.relu(tf.matmul(encoded_dataset, w1) + b1)
 
 idx = 0
 for network in range(100):
-    w = init_weights((feed_forward_hidden_units_1, dnaNumLetters))
-    b = tf.Variable(np.zeros((1, dnaNumLetters)), dtype=tf.float32)
+    w = init_weights((feed_forward_hidden_units_1, dna_num_letters))
+    b = tf.Variable(np.zeros((1, dna_num_letters)), dtype=tf.float32)
     output = tf.matmul(h1, w) + b
 
     predictions = tf.nn.softmax(output, name="predictions")
@@ -89,20 +90,21 @@ with tf.Session() as sess:
 
     for step in range(numTrainingIters + 1):
 
-        subroots, dna_descendants, _, _, _ = tree_utils.get_batch_sized_data(tree, data, batchSize,
-                                                                             max_size_dataset,
-                                                                             sequence_length=sequenceLength)
+        training_data_model = TrainingDataModel(tree, data, sequence_length,
+                                                dna_num_letters)
 
-        _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy,a,b, _tf_accuracy = sess.run(
+        tree_utils.get_batch_sized_data(batch_size, training_data_model)
+
+        _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy, a, b, _tf_accuracy = sess.run(
             [encoded_dataset, total_loss, training_alg, predictions, accuracy, aa, bb, tf_accuracy],
             feed_dict={
-                data_input: dna_descendants,
-                subroot_sequences: subroots
+                data_input: training_data_model.descendants_dna_sequences,
+                subroot_sequences: training_data_model.dna_subroots
             })
 
-        if step % 50 == 0:
-            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%} \tTF Acc: {:.2%}".format(
-                step, _totalLoss, _accuracy, _tf_accuracy))
+        if step % 1 == 0:
+            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
+                step, _totalLoss, _accuracy))
 
     builder.add_meta_graph_and_variables(sess=sess,
                                          tags=["subroot_prediction"],
