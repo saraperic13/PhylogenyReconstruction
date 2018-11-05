@@ -5,10 +5,11 @@ from tensorflow.python.saved_model.signature_def_utils_impl import predict_signa
 import load_data_utils
 import tree_parser
 import tree_utils
+from training_data_model import TrainingDataModel
 
 tree_file = "dataset/100-trees/100_20.2.tree"
 dna_sequences_files = "dataset/100-trees/seq_100_20.2.txt"
-model_path = "./models/2/"
+model_path = "./models/2update1/"
 
 encoder_output_size = 70
 
@@ -16,15 +17,15 @@ feed_forward_hidden_units_1 = 700
 feed_forward_hidden_units_2 = 1000
 feed_forward_hidden_units_3 = 1000
 
-sequenceLength = 100
+sequence_length = 100
 
-dnaNumLetters = 4
+dna_num_letters = 4
 
 learning_rate = 0.02
 
-batchSize = 100
+batch_size = 100
 
-numTrainingIters = 100
+num_training_iters = 100
 
 
 def init_weights(shape):
@@ -40,14 +41,14 @@ def encode_sequence(sequence):
 trees = tree_parser.parse(tree_file)
 max_size_dataset = trees[0].get_number_of_leaves()
 
-data_input = tf.placeholder(tf.float32, [batchSize, None, sequenceLength * dnaNumLetters], name="encoder_dataset_plc")
-dna_sequence_input_1 = tf.placeholder(tf.float32, [batchSize, sequenceLength * dnaNumLetters],
+data_input = tf.placeholder(tf.float32, [batch_size, None, sequence_length * dna_num_letters], name="encoder_dataset_plc")
+dna_sequence_input_1 = tf.placeholder(tf.float32, [batch_size, sequence_length * dna_num_letters],
                                       name="encoder_dna_seq_1_plc")
-dna_sequence_input_2 = tf.placeholder(tf.float32, [batchSize, sequenceLength * dnaNumLetters],
+dna_sequence_input_2 = tf.placeholder(tf.float32, [batch_size, sequence_length * dna_num_letters],
                                       name="encoder_dna_seq_2_plc")
-inputY = tf.placeholder(tf.float32, [batchSize, 2], name="together_plc")
+inputY = tf.placeholder(tf.float32, [batch_size, 2], name="together_plc")
 
-enc_w1 = init_weights((sequenceLength * dnaNumLetters, encoder_output_size))
+enc_w1 = init_weights((sequence_length * dna_num_letters, encoder_output_size))
 enc_b1 = tf.Variable(np.zeros((1, encoder_output_size)), dtype=tf.float32)
 
 encoded_dna_sequence_1 = encode_sequence(dna_sequence_input_1)
@@ -103,23 +104,23 @@ with tf.Session() as sess:
     data = load_data_utils.read_data(dna_sequences_files)
 
     i = 0
+
     for tree in trees:
 
-        for step in range(numTrainingIters + 1):
+        for step in range(num_training_iters + 1):
 
-            subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
-                                                                                                             batchSize,
-                                                                                                             max_size_dataset,
-                                                                                                             sequence_length=sequenceLength,
-                                                                                                             dataset_index=i)
+            training_data_model = TrainingDataModel(tree, data, sequence_length, i,
+                                                    dna_num_letters)
+
+            tree_utils.get_batch_sized_data(batch_size, training_data_model)
 
             _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy = sess.run(
                 [encoded_dataset, total_loss, training_alg, predictions, accuracy],
                 feed_dict={
-                    data_input: dna_descendants,
-                    dna_sequence_input_1: dna_child_1,
-                    dna_sequence_input_2: dna_child_2,
-                    inputY: together
+                    data_input: training_data_model.descendants_dna_sequences,
+                    dna_sequence_input_1: training_data_model.dna_sequences_left_child,
+                    dna_sequence_input_2: training_data_model.dna_sequences_right_child,
+                    inputY: training_data_model.are_nodes_together
                 })
             if step % 50 == 0:
                 print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(

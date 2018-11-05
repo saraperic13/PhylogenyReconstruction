@@ -3,14 +3,16 @@ import tensorflow as tf
 import load_data_utils
 import tree_parser
 import tree_utils
+from training_data_model import TrainingDataModel
 
 tree_file = "dataset/100-trees/50_20.2.tree"
 dna_sequence_file = "dataset/100-trees/seq_50_20.2.txt"
-model_file = './models/2/'
+model_file = './models/2update1/'
 
-dataset_size = 10
 sequence_length = 100
 batch_size = 100
+
+dna_num_letters = 4
 
 
 def write_to_file(losses, accuracy, avg_loss, avg_acc):
@@ -47,19 +49,17 @@ with tf.Session() as sess:
     for tree in trees:
 
         for step in range(100):
-            subroots, dna_descendants, dna_child_1, dna_child_2, together = tree_utils.get_subroot_and_nodes(tree, data,
-                                                                                                             batchSize=batch_size,
-                                                                                                             max_size_dataset=max_size_dataset,
-                                                                                                             sequence_length=sequence_length,
-                                                                                                             dataset_index=i)
+            training_data_model = TrainingDataModel(tree, data, sequence_length, i,
+                                                    dna_num_letters)
 
+            tree_utils.get_batch_sized_data(batch_size, training_data_model)
             _accuracy, _loss = sess.run(
                 [accuracy, loss],
                 feed_dict={
-                    encoder_dataset_plc: dna_descendants,
-                    encoder_dna_seq_1_plc: dna_child_1,
-                    encoder_dna_seq_2_plc: dna_child_2,
-                    together_plc: together
+                    encoder_dataset_plc: training_data_model.descendants_dna_sequences,
+                    encoder_dna_seq_1_plc: training_data_model.dna_sequences_left_child,
+                    encoder_dna_seq_2_plc: training_data_model.dna_sequences_right_child,
+                    together_plc: training_data_model.are_nodes_together
                 })
 
             losses.append(_loss)

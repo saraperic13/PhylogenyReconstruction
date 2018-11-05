@@ -42,10 +42,10 @@ with tf.Session() as sess:
     data = load_data_utils.read_data(dna_sequence_file)
 
     for step in range(100):
-        subroots, dna_descendants, _, _, _ = tree_utils.get_subroot_and_nodes(tree, data,
-                                                                              batchSize=batch_size,
-                                                                              max_size_dataset=max_size_dataset,
-                                                                              sequence_length=sequence_length)
+        subroots, dna_descendants, _, _, _ = tree_utils.get_batch_sized_data(tree, data,
+                                                                             batch_size=batch_size,
+                                                                             max_size_dataset=max_size_dataset,
+                                                                             sequence_length=sequence_length)
 
         _accuracy, _loss = sess.run(
             [accuracy, loss],

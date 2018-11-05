@@ -1,7 +1,5 @@
 import random
 
-import numpy as np
-
 
 def get_all_node_descendant_leaves(node, descendants):
     if not node.descendants:
@@ -33,33 +31,21 @@ def are_together(node_1, node_2, root):
     return [0, 1]
 
 
-def get_subroot_and_nodes(tree, data, batchSize, max_size_dataset, sequence_length, dataset_index,
-                          dna_num_letters=4):
-    dna_children_1, dna_children_2, together, dataset, subroots = [], [], [], [], []
+def get_batch_sized_data(batch_size, training_data_model):
+    for i in range(batch_size):
+        get_subroot_and_descendants(training_data_model)
 
-    for i in range(batchSize):
-        subroot = tree.get_random_node()
+    return training_data_model
 
-        descendants, dnas = [], []
-        get_all_node_descendant_leaves(subroot, descendants)
 
-        if dataset_index == -1:
-            dataset_index = random.randint(0, len(data[descendants[0].name]) - 1)
+def get_subroot_and_descendants(training_data_model):
+    descendants = []
+    subroot = training_data_model.select_random_subroot()
 
-        for child in descendants:
-            dnas.append(data[child.name][dataset_index])
+    get_all_node_descendant_leaves(subroot, descendants)
 
-        for i in range(max_size_dataset - len(descendants)):
-            dnas.append(np.zeros(dna_num_letters * sequence_length, dtype=np.int64))
+    training_data_model.process_dataset(descendants)
 
-        dataset.append(dnas)
-        if subroot.name in data:
-            subroots.append(data[subroot.name][dataset_index])
-
-        leaves = get_random_descendants(descendants)
-        together.append(are_together(leaves[0], leaves[1], subroot))
-
-        dna_children_1.append(data[leaves[0].name][dataset_index])
-        dna_children_2.append(data[leaves[1].name][dataset_index])
-
-    return subroots, dataset, dna_children_1, dna_children_2, together
+    leaves = get_random_descendants(descendants)
+    together = are_together(leaves[0], leaves[1], subroot)
+    training_data_model.process_leaves(leaves, together)

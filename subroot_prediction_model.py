@@ -89,9 +89,9 @@ with tf.Session() as sess:
 
     for step in range(numTrainingIters + 1):
 
-        subroots, dna_descendants, _, _, _ = tree_utils.get_subroot_and_nodes(tree, data, batchSize,
-                                                                              max_size_dataset,
-                                                                              sequence_length=sequenceLength)
+        subroots, dna_descendants, _, _, _ = tree_utils.get_batch_sized_data(tree, data, batchSize,
+                                                                             max_size_dataset,
+                                                                             sequence_length=sequenceLength)
 
         _encoded_dataset, _totalLoss, _training_alg, _predictions, _accuracy,a,b, _tf_accuracy = sess.run(
             [encoded_dataset, total_loss, training_alg, predictions, accuracy, aa, bb, tf_accuracy],
