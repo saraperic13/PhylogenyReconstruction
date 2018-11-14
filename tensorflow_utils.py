@@ -16,8 +16,19 @@ def make_placeholder(shape, name):
 
 
 def multiply_sequence_weight_matrices(sequence, weights_matrices, bias_matrices):
-
     for i in range(len(weights_matrices)):
         sequence = tf.matmul(sequence, weights_matrices[i]) + bias_matrices[i]
     return sequence
 
+
+def multiply_sequence_weight_matrices_with_activation(sequence, weights_matrices, bias_matrices):
+    for i in range(len(weights_matrices)):
+        sequence = tf.matmul(sequence, weights_matrices[i]) + bias_matrices[i]
+
+        if i == len(weights_matrices) - 1:
+            prediction = tf.nn.softmax(sequence, name="predictions")
+            return sequence, prediction
+        else:
+            sequence = tf.nn.relu(sequence)
+
+    return sequence

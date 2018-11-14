@@ -46,12 +46,3 @@ class EncoderNetwork(BaseNetwork):
                                     dtype=tf.float32)
 
         return encoded_dna_sequence_1, encoded_dna_sequence_2, encoded_dataset
-
-    def create_weights_biases_matrices(self):
-
-        for layer in range(len(self.number_of_neurons_per_layer) - 1):
-            tensorflow_utils.create_and_append_matrix(self.number_of_neurons_per_layer[layer],
-                                                      self.number_of_neurons_per_layer[layer + 1], self.weights)
-
-            tensorflow_utils.create_and_append_matrix(1,
-                                                      self.number_of_neurons_per_layer[layer + 1], self.biases)
