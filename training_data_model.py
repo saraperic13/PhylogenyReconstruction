@@ -8,8 +8,8 @@ class TrainingDataModel:
     def __init__(self, tree, dna_sequences, dna_sequence_length, dna_num_letters=4,
                  dataset_index=None):
         self.dna_subroots = []
-        self.dna_sequences_right_child = []
-        self.dna_sequences_left_child = []
+        self.dna_sequences_node_2 = []
+        self.dna_sequences_node_1 = []
         self.are_nodes_together = []
         self.tree = tree
         self.dna_sequence_length = dna_sequence_length
@@ -38,11 +38,11 @@ class TrainingDataModel:
         dnas = []
         for child in descendants:
             # TODO extend
-            dnas.extend(self.get_dna_of_selected_node(child))
+            dnas.append(self.get_dna_of_selected_node(child))
 
         for i in range(self.dataset_size - len(descendants)):
             # TODO extend
-            dnas.extend(
+            dnas.append(
                 np.zeros(self.dna_num_letters * self.dna_sequence_length, dtype=np.int64))
 
         self.descendants_dna_sequences.append(dnas)
@@ -52,35 +52,6 @@ class TrainingDataModel:
 
     def process_leaves(self, nodes, together):
         self.are_nodes_together.append(together)
-        self.dna_sequences_left_child.append(self.dna_sequences[nodes[0].name][self.dataset_index])
-        self.dna_sequences_right_child.append(self.dna_sequences[nodes[1].name][self.dataset_index])
-    #
-    # def get_dna_subroots(self):
-    #     return self.dna_subroots
-    #
-    # def get_dna_sequences_right_child(self):
-    #     return self.dna_sequences_right_child
-    #
-    # def get_dna_sequences_left_child(self):
-    #     return self.dna_sequences_left_child
-    #
-    # def get_dna_sequences(self):
-    #     return self.dna_sequences
-    #
-    # def get_dataset_index(self):
-    #     return self.dataset_index
-    #
-    # def get_dataset_size(self):
-    #     return self.dataset_size
-    #
-    # def get_are_nodes_together(self):
-    #     return self.are_nodes_together
-    #
-    # def get_dna_sequence_length(self):
-    #     return self.dna_sequence_length
-    #
-    # def get_dna_num_letters(self):
-    #     return self.dna_num_letters
-    #
-    # def get_tree(self):
-    #     return self.tree
+        self.dna_sequences_node_1.append(self.dna_sequences[nodes[0].name][self.dataset_index])
+        self.dna_sequences_node_2.append(self.dna_sequences[nodes[1].name][self.dataset_index])
+
