@@ -1,8 +1,7 @@
 import tensorflow as tf
 
-import load_data_utils
-import tree_parser
-import tree_utils
+from utils import load_data_utils
+from tree_files import tree_parser, tree_utils
 from training_data_model import TrainingDataModel
 
 tree_file = "dataset/20.2.tree"

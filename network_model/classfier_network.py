@@ -1,5 +1,5 @@
-import tensorflow_utils
-from base_network import BaseNetwork
+from network_model.base_network import BaseNetwork
+from utils import tensorflow_utils
 
 
 class ClassifierNetwork(BaseNetwork):

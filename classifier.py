@@ -1,16 +1,15 @@
 import tensorflow as tf
 
-import load_data_utils
-import tree_parser
-import tree_utils
-from training_data_model import TrainingDataModel
+from utils import load_data_utils
+from tree_files import tree_parser, tree_utils
+from network_model.training_data_model import TrainingDataModel
 
 tree_file = "dataset/100-trees/probaj_jedno.tree"
 dna_sequence_file = "dataset/100-trees/jedno.txt"
-model_path = "./models/jedno50/"
+model_path = "./models/rewrw/"
 
 sequence_length = 100
-batch_size = 50
+batch_size = 100
 
 dna_num_letters = 4
 

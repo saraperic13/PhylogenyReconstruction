@@ -1,4 +1,4 @@
-import tensorflow_utils
+from utils import tensorflow_utils
 
 
 class BaseNetwork:

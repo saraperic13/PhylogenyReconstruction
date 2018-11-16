@@ -1,7 +1,8 @@
-from newick import load
 import io
-from tree import Tree
 
+from newick import load
+
+from tree_files.tree import Tree
 
 def load_tree(node, tree):
     if not node.name:
@@ -24,5 +25,4 @@ def parse(file_name):
             trees.append(tree)
     return trees
 
-
-# parse("dataset/100-trees/100_20.2.tree")
+# parse("../dataset/100-trees/100_20.2.tree")

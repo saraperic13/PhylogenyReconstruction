@@ -1,7 +1,7 @@
 import tensorflow as tf
+from network_model.base_network import BaseNetwork
 
-import tensorflow_utils
-from base_network import BaseNetwork
+from utils import tensorflow_utils
 
 
 class EncoderNetwork(BaseNetwork):
@@ -38,11 +38,15 @@ class EncoderNetwork(BaseNetwork):
         encoded_dna_sequence_2 = tensorflow_utils.multiply_sequence_weight_matrices(self.dna_sequence_node_2,
                                                                                     self.weights, self.biases)
 
+        encoded_dataset = self.encode_dataset()
+
+        return encoded_dna_sequence_1, encoded_dna_sequence_2, encoded_dataset
+
+    def encode_dataset(self):
         encoded_dataset = tf.map_fn(
             lambda x: tensorflow_utils.multiply_sequence_weight_matrices(x, self.weights, self.biases),
             self.dna_subtree, dtype=tf.float32)
 
         encoded_dataset = tf.map_fn(lambda x: tf.reduce_mean(x, axis=0), encoded_dataset,
                                     dtype=tf.float32)
-
-        return encoded_dna_sequence_1, encoded_dna_sequence_2, encoded_dataset
+        return encoded_dataset

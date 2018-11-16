@@ -54,4 +54,3 @@ class TrainingDataModel:
         self.are_nodes_together.append(together)
         self.dna_sequences_node_1.append(self.dna_sequences[nodes[0].name][self.dataset_index])
         self.dna_sequences_node_2.append(self.dna_sequences[nodes[1].name][self.dataset_index])
-
