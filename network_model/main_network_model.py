@@ -49,8 +49,6 @@ class MainNetworkModel:
         return tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
 
     def initialize_classifier(self, input_data):
-        # encoder_output_size * 3, feed_forward_hidden_units_1, feed_forward_hidden_units_2,
-        # feed_forward_hidden_units_3, 2
 
         self.classifier_network = ClassifierNetwork(
             self.number_of_neurons_per_layer_classifier,
@@ -108,11 +106,11 @@ class MainNetworkModel:
             })
         self.print_to_screen(tree_index, _accuracy, _loss)
 
-    def print_to_screen(self, step, accuracy, loss):
+    def print_to_screen(self, tree_index, accuracy, loss):
 
-        if step % 1 == 0:
-            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
-                step, loss, accuracy))
+        if tree_index % 1 == 0:
+            print("Tree index: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
+                tree_index, loss, accuracy))
 
     def save_model(self, session):
         builder, signature = self.create_model_signature()
