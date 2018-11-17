@@ -2,9 +2,9 @@ from network_model.main_network_model import MainNetworkModel
 
 tree_file = "dataset/100-trees/500_20.2.tree"
 dna_sequence_file = "dataset/100-trees/seq_500_20.2.txt"
-model_path = "models/500trees/"
+model_path = "models/mean/"
 
-encoder_output_size = 100
+encoder_output_size = 10
 
 feed_forward_hidden_units_1 = 500
 feed_forward_hidden_units_2 = 500
@@ -18,7 +18,7 @@ learning_rate = 0.02
 
 batch_size = 100
 
-num_training_iters = 15000
+num_training_iters = 40
 
 if __name__ == "__main__":
     network = MainNetworkModel(tree_file=tree_file,

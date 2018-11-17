@@ -5,15 +5,15 @@ from tree_files import tree_parser, tree_utils
 from utils import file_utils
 from utils import load_data_utils
 
-tree_file = "dataset/100-trees/500_20.2.tree"
-dna_sequence_file = "dataset/100-trees/seq_500_20.2.txt"
-model_path = "models/500trees/"
+tree_file = "dataset/100-trees/50_20.2.tree"
+dna_sequence_file = "dataset/100-trees/seq_50_20.2.txt"
+model_path = "models/mean/"
 
-sequence_length = 500
+sequence_length = 100
 batch_size = 100
 
 dna_num_letters = 4
-number_of_iterations = 50
+number_of_iterations = 10
 
 
 def run_session():

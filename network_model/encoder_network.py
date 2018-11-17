@@ -1,6 +1,6 @@
 import tensorflow as tf
-from network_model.base_network import BaseNetwork
 
+from network_model.base_network import BaseNetwork
 from utils import tensorflow_utils
 
 
@@ -47,6 +47,16 @@ class EncoderNetwork(BaseNetwork):
             lambda x: tensorflow_utils.multiply_sequence_weight_matrices(x, self.weights, self.biases),
             self.dna_subtree, dtype=tf.float32)
 
-        encoded_dataset = tf.map_fn(lambda x: tf.reduce_mean(x, axis=0), encoded_dataset,
-                                    dtype=tf.float32)
+        encoded_dataset = tf.reshape(encoded_dataset, [100, 20 * self.number_of_neurons_per_layer[-1]])
+
+        encoder_2_w, encoder_2_b = [], []
+
+        tensorflow_utils.create_and_append_matrix(20 * self.number_of_neurons_per_layer[-1],
+                                                  self.number_of_neurons_per_layer[-1], encoder_2_w)
+        tensorflow_utils.create_and_append_matrix(1,
+                                                  self.number_of_neurons_per_layer[-1], encoder_2_b)
+
+        encoded_dataset = tensorflow_utils.multiply_sequence_weight_matrices(encoded_dataset, encoder_2_w, encoder_2_b)
+        # encoded_dataset = tf.map_fn(lambda x: tf.reduce_mean(x, axis=0), encoded_dataset,
+        #                             dtype=tf.float32)
         return encoded_dataset
