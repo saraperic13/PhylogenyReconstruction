@@ -5,15 +5,15 @@ from tree_files import tree_parser, tree_utils
 from utils import file_utils
 from utils import load_data_utils
 
-tree_file = "dataset/100-trees/probaj_jedno.tree"
-dna_sequence_file = "dataset/100-trees/jedno.txt"
-model_path = "models/rewrw/"
+tree_file = "dataset/100-trees/500_20.2.tree"
+dna_sequence_file = "dataset/100-trees/seq_500_20.2.txt"
+model_path = "models/500trees/"
 
-sequence_length = 100
+sequence_length = 500
 batch_size = 100
 
 dna_num_letters = 4
-number_of_iterations = 100
+number_of_iterations = 50
 
 
 def run_session():
@@ -29,8 +29,8 @@ def run_session():
         trees = load_trees(tree_file)
 
         dataset_index = 0
-        for tree in trees:
-            predict_over_tree(sess, tree, dataset_index, number_of_iterations, dna_sequences, dna_subtree,
+        for i in range(0, len(trees)):
+            predict_over_tree(sess, trees[i], i, number_of_iterations, dna_sequences, dna_subtree,
                               dna_sequences_node_1,
                               dna_sequences_node_2, are_nodes_together, accuracy, loss, predictions, losses, accuracies)
 

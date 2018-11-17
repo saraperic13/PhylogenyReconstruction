@@ -1,8 +1,10 @@
+import random
+
 import tensorflow as tf
 from tensorflow.python.saved_model.signature_def_utils_impl import predict_signature_def
 
-from network_model.encoder_network import EncoderNetwork
 from network_model.classfier_network import ClassifierNetwork
+from network_model.encoder_network import EncoderNetwork
 from network_model.training_data_model import TrainingDataModel
 from tree_files import tree_parser
 from tree_files import tree_utils
@@ -83,14 +85,13 @@ class MainNetworkModel:
         trees = tree_parser.parse(self.tree_file)
 
         for step in range(self.num_training_iters + 1):
+            tree_index = random.randint(0, len(trees)-1)
 
-            tree_index = 0
+            # for tree in trees:
+            self.train_over_tree(dna_sequences, trees[tree_index], tree_index, session, step)
+            # tree_index += 1
 
-            for tree in trees:
-                self.train_over_tree(dna_sequences, tree, tree_index, session)
-                tree_index += 1
-
-    def train_over_tree(self, dna_sequences, tree, tree_index, session):
+    def train_over_tree(self, dna_sequences, tree, tree_index, session, step):
         training_data_model = TrainingDataModel(tree, dna_sequences, self.sequence_length,
                                                 self.dna_num_letters, dataset_index=tree_index)
 
@@ -104,13 +105,13 @@ class MainNetworkModel:
                 self.encoder_network.dna_sequence_node_2: training_data_model.dna_sequences_node_2,
                 self.encoder_network.are_nodes_together: training_data_model.are_nodes_together
             })
-        self.print_to_screen(tree_index, _accuracy, _loss)
+        self.print_to_screen(_accuracy, _loss, step)
 
-    def print_to_screen(self, tree_index, accuracy, loss):
+    def print_to_screen(self, accuracy, loss, step):
 
-        if tree_index % 1 == 0:
+        if step % 10 == 0:
             print("Tree index: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
-                tree_index, loss, accuracy))
+                step, loss, accuracy))
 
     def save_model(self, session):
         builder, signature = self.create_model_signature()
