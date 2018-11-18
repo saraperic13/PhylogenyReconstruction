@@ -11,6 +11,7 @@ feed_forward_hidden_units_2 = 500
 feed_forward_hidden_units_3 = 500
 
 sequence_length = 100
+number_of_leaves_sequences = 20
 
 dna_num_letters = 4
 
@@ -28,7 +29,8 @@ if __name__ == "__main__":
                                number_of_neurons_per_layer_classifier=[3 * encoder_output_size,
                                                                        feed_forward_hidden_units_1,
                                                                        feed_forward_hidden_units_2, 2],
-                               sequence_length=sequence_length, dna_num_letters=dna_num_letters, batch_size=batch_size,
+                               sequence_length=sequence_length, number_of_leaves_sequences=number_of_leaves_sequences,
+                               dna_num_letters=dna_num_letters, batch_size=batch_size,
                                learning_rate=learning_rate,
                                num_training_iters=num_training_iters)
     network.train()

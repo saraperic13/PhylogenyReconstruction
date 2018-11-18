@@ -14,16 +14,18 @@ from utils import load_data_utils
 class MainNetworkModel:
 
     def __init__(self, number_of_neurons_per_layer_encoder, number_of_neurons_per_layer_classifier,
-                 batch_size, sequence_length, learning_rate, num_training_iters, tree_file, dna_sequence_file,
+                 batch_size, number_of_leaves_sequences, sequence_length, learning_rate, num_training_iters, tree_file, dna_sequence_file,
                  model_path, dna_num_letters=4):
         self.number_of_neurons_per_layer_encoder = number_of_neurons_per_layer_encoder
         self.number_of_neurons_per_layer_classifier = number_of_neurons_per_layer_classifier
 
         self.batch_size = batch_size
         self.sequence_length = sequence_length
+        self.number_of_leaves_sequences = number_of_leaves_sequences
         self.dna_num_letters = dna_num_letters
         self.learning_rate = learning_rate
         self.num_training_iters = num_training_iters
+
         self.tree_file = tree_file
         self.dna_sequence_file = dna_sequence_file
         self.model_path = model_path
@@ -45,6 +47,7 @@ class MainNetworkModel:
     def initialize_encoder_and_encode(self):
         self.encoder_network = EncoderNetwork(self.number_of_neurons_per_layer_encoder, self.batch_size,
                                               self.sequence_length,
+                                              self.number_of_leaves_sequences,
                                               self.dna_num_letters)
         encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2 = self.encoder_network.encode()
 
@@ -83,6 +86,7 @@ class MainNetworkModel:
     def train_network(self, session):
         dna_sequences = load_data_utils.read_data(self.dna_sequence_file)
         trees = tree_parser.parse(self.tree_file)
+
         indexes = list(range(len(trees)))
 
         for step in range(self.num_training_iters + 1):
