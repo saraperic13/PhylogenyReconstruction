@@ -22,7 +22,7 @@ class TrainingDataModel:
         self.check_and_modify_dataset_index()
 
     def check_and_modify_dataset_index(self):
-        if not self.dataset_index:
+        if self.dataset_index is None:
             number_of_datasets = len(next(iter(self.dna_sequences.values())))
             self.dataset_index = random.randint(0, number_of_datasets - 1)
 
