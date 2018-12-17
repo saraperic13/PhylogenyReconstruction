@@ -23,11 +23,12 @@ def read_data(file_name):
             if "A" not in line and "C" not in line and "G" not in line and "T" not in line:
                 continue
             species, sequence = sequence_to_one_hot_enc(line)
-            if len(sequence) > 0:
+            if len(sequence) <= 0:
+                continue
 
-                if species not in data:
-                    data[species] = []
+            if species not in data:
+                data[species] = []
 
-                data[species].append(np.array(sequence))
+            data[species].append(np.array(sequence))
 
     return data

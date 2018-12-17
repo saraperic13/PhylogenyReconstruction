@@ -14,7 +14,8 @@ from utils import load_data_utils
 class MainNetworkModel:
 
     def __init__(self, number_of_neurons_per_layer_encoder, number_of_neurons_per_layer_classifier,
-                 batch_size, number_of_leaves_sequences, sequence_length, learning_rate, num_training_iters, tree_file, dna_sequence_file,
+                 batch_size, number_of_leaves_sequences, sequence_length, learning_rate, num_training_iters, tree_file,
+                 dna_sequence_file,
                  model_path, dna_num_letters=4):
         self.number_of_neurons_per_layer_encoder = number_of_neurons_per_layer_encoder
         self.number_of_neurons_per_layer_classifier = number_of_neurons_per_layer_classifier
@@ -87,19 +88,23 @@ class MainNetworkModel:
         dna_sequences = load_data_utils.read_data(self.dna_sequence_file)
         trees = tree_parser.parse(self.tree_file)
 
-        indexes = list(range(len(trees)))
+        tree_indexes = list(range(len(trees)))
+        losses, accuracies = [], []
 
         for step in range(self.num_training_iters + 1):
-            # tree_index = random.randint(0, len(trees)-1)
 
-            random.shuffle(indexes)
-            # tree_index = 0
+            random.shuffle(tree_indexes)
 
-            for index in indexes:
-                self.train_over_tree(dna_sequences, trees[index], index, session, step)
-                # tree_index += 1
+            for index in tree_indexes:
+                accuracy, loss = self.train_over_tree(dna_sequences, trees[index], index, session)
+                losses.append(loss)
+                accuracies.append(accuracy)
 
-    def train_over_tree(self, dna_sequences, tree, tree_index, session, step):
+            self.print_to_screen(accuracies, losses, step)
+            accuracies.clear()
+            losses.clear()
+
+    def train_over_tree(self, dna_sequences, tree, tree_index, session):
         training_data_model = TrainingDataModel(tree, dna_sequences, self.sequence_length,
                                                 self.dna_num_letters, dataset_index=tree_index)
 
@@ -113,13 +118,15 @@ class MainNetworkModel:
                 self.encoder_network.dna_sequence_node_2: training_data_model.dna_sequences_node_2,
                 self.encoder_network.are_nodes_together: training_data_model.are_nodes_together
             })
-        self.print_to_screen(_accuracy, _loss, step, tree_index)
+        return _accuracy, _loss
 
-    def print_to_screen(self, accuracy, loss, step, tree_index):
+    def print_to_screen(self, accuracies, losses, step):
 
-        if step % 10 == 0:
-            print("Step: {:5}\tTree index: {:5}\tLoss: {:.2f}\tAcc: {:.2%}".format(
-                step, tree_index, loss, accuracy))
+        loss = sum(losses) / float(len(losses))
+        accuracy = sum(accuracies) / float(len(accuracies))
+
+        print("Step: [{}/{}]\tLoss: {:.2f}\tAcc: {:.2%}".format(
+            step, self.num_training_iters, loss, accuracy))
 
     def save_model(self, session):
         builder, signature = self.create_model_signature()
