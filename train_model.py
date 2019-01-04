@@ -1,8 +1,8 @@
 from network_model.main_network_model import MainNetworkModel
 
-tree_file = "dataset/5000_20.2.tree"
-dna_sequence_file = "dataset/seq_5000_20.2.txt"
-model_path = "models/5000/"
+tree_file = "dataset/10_20.2.tree"
+dna_sequence_file = "dataset/seq_10_20.2.txt"
+model_path = "models/10/"
 
 encoder_output_size = 10
 

@@ -19,20 +19,24 @@ class EncoderNetwork(BaseNetwork):
         self.number_of_leaves_sequences = number_of_leaves_sequences
 
         self.create_placeholders()
-        self.create_weights_biases_matrices()
+        num_of_rows = self.dna_sequence_node_1.get_shape().as_list()[1]
+        self.create_weights_biases_matrices(num_of_rows)
 
     def create_placeholders(self):
         self.dna_subtree = tensorflow_utils.make_placeholder(
-            shape=[self.batch_size, None, self.sequence_length * self.dna_num_letters],
+            # shape=[self.batch_size, None, self.sequence_length * self.dna_num_letters],
+            shape=[None, None, None],
             name="dna_subtree")
 
         self.dna_sequence_node_1 = tensorflow_utils.make_placeholder(
-            shape=[self.batch_size, self.sequence_length * self.dna_num_letters],
+            # shape=[self.batch_size, self.sequence_length * self.dna_num_letters],
+            shape=[None, None],
             name="dna_sequence_node_1")
         self.dna_sequence_node_2 = tensorflow_utils.make_placeholder(
-            shape=[self.batch_size, self.sequence_length * self.dna_num_letters],
+            # shape=[None, self.sequence_length * self.dna_num_letters],
+            shape=[None, None],
             name="dna_sequence_node_2")
-        self.are_nodes_together = tensorflow_utils.make_placeholder(shape=[self.batch_size, 2],
+        self.are_nodes_together = tensorflow_utils.make_placeholder(shape=[None, 2],
                                                                     name="are_nodes_together")
 
     def encode(self):
@@ -50,7 +54,8 @@ class EncoderNetwork(BaseNetwork):
             lambda x: tensorflow_utils.multiply_sequence_weight_matrices(x, self.weights, self.biases),
             self.dna_subtree, dtype=tf.float32)
 
-        encoded_dataset = tf.reshape(encoded_dataset, [self.batch_size, self.number_of_leaves_sequences *
+        # encoded_dataset = tf.reshape(encoded_dataset, [self.batch_size, self.number_of_leaves_sequences *
+        encoded_dataset = tf.reshape(encoded_dataset, [tf.shape(self.dna_sequence_node_1)[0], self.number_of_leaves_sequences *
                                                        self.number_of_neurons_per_layer[-1]])
 
         encoder_2_w, encoder_2_b = [], []

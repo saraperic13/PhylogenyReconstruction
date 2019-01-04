@@ -8,7 +8,7 @@ def create_and_append_matrix(input_size, output_size, list):
 
 def init_variable(shape):
     weights = tf.random_normal(shape, stddev=0.1)
-    return tf.Variable(weights)
+    return tf.Variable(weights, validate_shape=False)
 
 
 def make_placeholder(shape, name):
