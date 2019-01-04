@@ -2,7 +2,7 @@ from network_model.test_model import TestModel
 
 tree_file = "dataset/100_20.2.tree"
 dna_sequence_file = "dataset/seq_100_20.2.txt"
-model_path = "models/5000_30/"
+model_path = "models/5000/"
 
 sequence_length = 100
 batch_size = 100

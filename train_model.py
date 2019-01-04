@@ -2,7 +2,7 @@ from network_model.main_network_model import MainNetworkModel
 
 tree_file = "dataset/5000_20.2.tree"
 dna_sequence_file = "dataset/seq_5000_20.2.txt"
-model_path = "models/5000_30/"
+model_path = "models/5000/"
 
 encoder_output_size = 10
 
@@ -14,11 +14,11 @@ number_of_leaves_sequences = 20
 
 dna_num_letters = 4
 
-learning_rate = 0.035
+learning_rate = 0.05
 
 batch_size = 100
 
-num_training_iters = 35
+num_training_iters = 20
 
 if __name__ == "__main__":
     network = MainNetworkModel(tree_file=tree_file,

@@ -3,11 +3,11 @@ import random
 
 class Tree:
 
-    def __init__(self, number_of_leaves):
+    def __init__(self, leaves):
         self.randomly_selected = {}
         self.nodes = []
-        self.number_of_named = number_of_leaves
-        self.number_of_leaves = number_of_leaves
+        self.leaves = leaves
+        self.number_of_named = len(leaves)
 
     def add_node(self, node):
         self.nodes.append(node)
@@ -16,7 +16,7 @@ class Tree:
         return self.number_of_named
 
     def get_number_of_leaves(self):
-        return self.number_of_leaves
+        return len(self.leaves)
 
     def increment_number_of_named(self):
         self.number_of_named += 1

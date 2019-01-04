@@ -1,4 +1,5 @@
 import random
+import itertools
 
 
 def get_all_node_descendant_leaves(node, descendants):
@@ -49,3 +50,7 @@ def get_subroot_and_descendants(training_data_model):
     leaves = get_random_descendants(descendants)
     together = are_together(leaves[0], leaves[1], subroot)
     training_data_model.process_leaves(leaves, together)
+
+
+def get_all_node_pairs(tree):
+    return list(itertools.combinations(tree.leaves, r=2))
