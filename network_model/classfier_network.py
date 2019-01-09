@@ -4,9 +4,8 @@ from utils import tensorflow_utils
 
 class ClassifierNetwork(BaseNetwork):
 
-    def __init__(self, number_of_neurons_per_layer, batch_size, sequence_length, dna_num_letters, data):
-        super(ClassifierNetwork, self).__init__(number_of_neurons_per_layer, batch_size, sequence_length,
-                                                dna_num_letters)
+    def __init__(self, number_of_neurons_per_layer, data):
+        super(ClassifierNetwork, self).__init__(number_of_neurons_per_layer)
         self.data = data
         self.weights = []
         self.biases = []

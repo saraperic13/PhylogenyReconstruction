@@ -20,7 +20,7 @@ def parse(file_name):
         loaded_trees = load(fp)
         trees = []
         for t in loaded_trees:
-            tree = Tree(len(t.get_leaves()))
+            tree = Tree(t.get_leaves())
             load_tree(t, tree)
             trees.append(tree)
     return trees

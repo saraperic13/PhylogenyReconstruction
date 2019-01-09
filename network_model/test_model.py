@@ -29,15 +29,15 @@ class TestModel:
             self.load_model(sess)
 
             dna_subtree, dna_sequences_node_1, dna_sequences_node_2,\
-                are_nodes_together, accuracy, loss, predictions = self.load_tensors()
+                are_nodes_together, number_of_leaves, accuracy, loss, predictions = self.load_tensors()
 
             dna_sequences = self.load_dna_sequences()
             trees = self.load_trees()
 
             for i in range(0, len(trees)):
-                self.predict_over_tree(sess, trees[i], i, dna_sequences, dna_subtree,
-                                       dna_sequences_node_1,
-                                       dna_sequences_node_2, are_nodes_together, accuracy, loss, predictions)
+                self.predict_over_tree(sess, trees[i], i, dna_sequences, dna_subtree, dna_sequences_node_1,
+                                       dna_sequences_node_2, are_nodes_together, number_of_leaves, accuracy,
+                                       loss, predictions)
 
             self.calculate_accuracy_and_loss_and_write_report()
 
@@ -52,11 +52,14 @@ class TestModel:
         encoder_dna_seq_1_plc = graph.get_tensor_by_name("dna_sequence_node_1:0")
         encoder_dna_seq_2_plc = graph.get_tensor_by_name("dna_sequence_node_2:0")
         together_plc = graph.get_tensor_by_name("are_nodes_together:0")
+        number_of_leaves = graph.get_tensor_by_name("number_of_leaves:0")
+
         accuracy = graph.get_tensor_by_name("accuracy:0")
         loss = graph.get_tensor_by_name("loss:0")
         predictions = graph.get_tensor_by_name("predictions:0")
 
-        return encoder_dataset_plc, encoder_dna_seq_1_plc, encoder_dna_seq_2_plc, together_plc, accuracy, loss, predictions
+        return encoder_dataset_plc, encoder_dna_seq_1_plc, encoder_dna_seq_2_plc, together_plc, number_of_leaves,\
+               accuracy, loss, predictions
 
     def load_dna_sequences(self):
         return load_data_utils.read_data(self.dna_sequence_file)
@@ -67,8 +70,7 @@ class TestModel:
         return trees
 
     def predict_over_tree(self, session, tree, tree_index, dna_sequences, dna_subtree, dna_sequence_node_1,
-                          dna_sequence_node_2,
-                          are_nodes_together, accuracy, loss, prediction):
+                          dna_sequence_node_2, are_nodes_together, number_of_leaves, accuracy, loss, prediction):
 
         current_tree_losses = []
         current_tree_accuracies = []
@@ -85,7 +87,8 @@ class TestModel:
                     dna_subtree: training_data_model.descendants_dna_sequences,
                     dna_sequence_node_1: training_data_model.dna_sequences_node_1,
                     dna_sequence_node_2: training_data_model.dna_sequences_node_2,
-                    are_nodes_together: training_data_model.are_nodes_together
+                    are_nodes_together: training_data_model.are_nodes_together,
+                    number_of_leaves: tree.get_number_of_leaves()
                 })
 
             current_tree_losses.append(_loss)
