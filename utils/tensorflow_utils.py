@@ -15,6 +15,14 @@ def make_placeholder(shape, name):
     return tf.placeholder(tf.float32, shape=shape, name=name)
 
 
+def make_constant(shape, name, value):
+    return tf.constant(name=name, value=value, shape=shape)
+
+
+def make_int_placeholder(shape, name):
+    return tf.placeholder(tf.int32, shape=shape, name=name)
+
+
 def multiply_sequence_weight_matrices(sequence, weights_matrices, bias_matrices):
     for i in range(len(weights_matrices)):
         sequence = tf.matmul(sequence, weights_matrices[i]) + bias_matrices[i]
@@ -32,3 +40,7 @@ def multiply_sequence_weight_matrices_with_activation(sequence, weights_matrices
             sequence = tf.nn.relu(sequence)
 
     return sequence
+
+
+def convert_to_int_32(value):
+    return tf.int32(value)

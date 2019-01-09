@@ -1,11 +1,11 @@
 from network_model.test_model import TestModel
 
-tree_file = "dataset/100_20.2.tree"
-dna_sequence_file = "dataset/seq_100_20.2.txt"
-model_path = "models/5000/"
+tree_file = "dataset/10_20.2.tree"
+dna_sequence_file = "dataset/seq_10_20.2.txt"
+model_path = "models/wq/"
 
-sequence_length = 100
-batch_size = 100
+sequence_length = 1000
+batch_size = 50
 
 dna_num_letters = 4
 number_of_iterations = 3
