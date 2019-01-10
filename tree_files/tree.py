@@ -4,7 +4,6 @@ import random
 class Tree:
 
     def __init__(self, leaves):
-        self.randomly_selected = {}
         self.nodes = []
         self.leaves = leaves
         self.number_of_named = len(leaves)
@@ -30,8 +29,4 @@ class Tree:
         while not subroot.descendants:
             subroot = random.choice(self.nodes)
 
-        if subroot in self.randomly_selected:
-            self.randomly_selected[subroot] += 1
-        else:
-            self.randomly_selected[subroot] = 0
         return subroot

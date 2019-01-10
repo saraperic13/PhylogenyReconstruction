@@ -3,16 +3,7 @@ import io
 from newick import load
 
 from tree_files.tree import Tree
-
-def load_tree(node, tree):
-    if not node.name:
-        tree.increment_number_of_named()
-        node.name = str(tree.get_number_of_named())
-
-    tree.add_node(node)
-
-    for child in node.descendants:
-        load_tree(child, tree)
+# from tree_files.node import Node
 
 
 def parse(file_name):
@@ -20,9 +11,26 @@ def parse(file_name):
         loaded_trees = load(fp)
         trees = []
         for t in loaded_trees:
-            tree = Tree(t.get_leaves())
+            tree = Tree(leaves=t.get_leaves())
             load_tree(t, tree)
             trees.append(tree)
     return trees
 
-# parse("../dataset/100-trees/100_20.2.tree")
+
+def load_tree(node, tree):
+    if not node.name:
+        tree.increment_number_of_named()
+        node.name = str(tree.get_number_of_named())
+
+    # tree_node = create_tree_node(newick_node=node)
+    tree.add_node(node)
+
+    for child in node.descendants:
+        load_tree(child, tree)
+
+
+# def create_tree_node(newick_node):
+#     return Node(newick_node.name, newick_node.ancestor, newick_node.descendants)
+
+
+# parse("../dataset/5.2.tree")

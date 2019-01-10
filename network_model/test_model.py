@@ -31,7 +31,7 @@ class TestModel:
             dna_subtree, dna_sequences_node_1, dna_sequences_node_2,\
                 are_nodes_together, number_of_leaves, accuracy, loss, predictions = self.load_tensors()
 
-            dna_sequences = self.load_dna_sequences()
+            dna_sequences, _ = self.load_dna_sequences()
             trees = self.load_trees()
 
             for i in range(0, len(trees)):
@@ -80,7 +80,7 @@ class TestModel:
 
             aa = tf.argmax(prediction, axis=1)
 
-            tree_utils.get_batch_sized_data(self.batch_size, training_data_model)
+            training_data_model.prepare_randomized_batch_sized_data(self.batch_size)
             _accuracy, _loss, _predictions, _aa = session.run(
                 [accuracy, loss, prediction, aa],
                 feed_dict={

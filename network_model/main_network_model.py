@@ -80,7 +80,7 @@ class MainNetworkModel:
             self.save_model(sess)
 
     def train_network(self, session):
-        dna_sequences = load_data_utils.read_data(self.dna_sequence_file)
+        dna_sequences, _= load_data_utils.read_data(self.dna_sequence_file)
         trees = tree_parser.parse(self.tree_file)
 
         tree_indexes = list(range(len(trees)))
@@ -103,7 +103,7 @@ class MainNetworkModel:
         training_data_model = TrainingDataModel(tree, dna_sequences, self.sequence_length,
                                                 self.dna_num_letters, dataset_index=tree_index)
 
-        tree_utils.get_batch_sized_data(self.batch_size, training_data_model)
+        training_data_model.prepare_randomized_batch_sized_data(self.batch_size)
 
         _loss, _predictions, _accuracy, _train_alg = session.run(
             [self.loss, self.predictions, self.accuracy, self.training_alg],
@@ -112,8 +112,6 @@ class MainNetworkModel:
                 self.encoder_network.dna_sequence_node_1: training_data_model.dna_sequences_node_1,
                 self.encoder_network.dna_sequence_node_2: training_data_model.dna_sequences_node_2,
                 self.encoder_network.are_nodes_together: training_data_model.are_nodes_together,
-                # self.encoder_network.encoded_dataset_shape: tree.get_number_of_leaves() *
-                #                                             self.encoder_network.number_of_neurons_per_layer[-1],
                 self.encoder_network.number_of_leaves: tree.get_number_of_leaves()
             })
         return _accuracy, _loss

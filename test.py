@@ -2,10 +2,10 @@ from network_model.test_model import TestModel
 
 tree_file = "dataset/100_5.2.tree"
 dna_sequence_file = "dataset/seq_100_5.2.txt"
-model_path = "models/fs/"
+model_path = "models/5000/"
 
 sequence_length = 100
-batch_size = 5
+batch_size = 10
 
 dna_num_letters = 4
 number_of_iterations = 3
