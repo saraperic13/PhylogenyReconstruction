@@ -6,13 +6,13 @@ from utils import tensorflow_utils
 
 class EncoderNetwork(BaseNetwork):
 
-    def __init__(self, number_of_neurons_per_layer):
+    def __init__(self, number_of_neurons_per_layer, number_of_leaves=20):
         super(EncoderNetwork, self).__init__(number_of_neurons_per_layer)
         self.dna_subtree = None
         self.dna_sequence_node_1 = None
         self.dna_sequence_node_2 = None
         self.are_nodes_together = None
-        self.number_of_leaves = None
+        self.number_of_leaves = number_of_leaves
         self.weights = []
         self.biases = []
 
@@ -36,8 +36,8 @@ class EncoderNetwork(BaseNetwork):
             name="dna_sequence_node_2")
         self.are_nodes_together = tensorflow_utils.make_placeholder(shape=[None, 2],
                                                                     name="are_nodes_together")
-        # self.number_of_leaves = tensorflow_utils.make_fill(name="number_of_leaves", value=20)
-        self.number_of_leaves = tensorflow_utils.make_constant(shape=[], name="number_of_leaves", value=20)
+        self.number_of_leaves = tensorflow_utils.make_constant(shape=[], name="number_of_leaves",
+                                                               value=self.number_of_leaves)
 
     def encode(self):
         encoded_dna_sequence_1 = tensorflow_utils.multiply_sequence_weight_matrices(self.dna_sequence_node_1,
@@ -54,14 +54,17 @@ class EncoderNetwork(BaseNetwork):
             lambda x: tensorflow_utils.multiply_sequence_weight_matrices(x, self.weights, self.biases),
             self.dna_subtree, dtype=tf.float32)
 
+        # encoded_dataset = tf.reshape(encoded_dataset, [tf.shape(self.dna_sequence_node_1)[0], self.number_of_leaves *
+        #                                                self.number_of_neurons_per_layer[-1]])
         encoded_dataset = tf.reshape(encoded_dataset, [tf.shape(self.dna_sequence_node_1)[0], self.number_of_leaves *
                                                        self.number_of_neurons_per_layer[-1]])
 
         encoder_2_w, encoder_2_b = [], []
 
-        tensorflow_utils.create_and_append_matrix_dynamic_shape((tf.shape(encoded_dataset)[1],
-                                                                 self.number_of_neurons_per_layer[-1]), encoder_2_w)
-
+        tensorflow_utils.create_and_append_matrix(
+            # self.number_of_leaves * self.number_of_neurons_per_layer[-1],
+            self.number_of_leaves * self.number_of_neurons_per_layer[-1],
+            self.number_of_neurons_per_layer[-1], encoder_2_w)
         tensorflow_utils.create_and_append_matrix(1,
                                                   self.number_of_neurons_per_layer[-1], encoder_2_b)
 
