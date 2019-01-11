@@ -16,7 +16,7 @@ class MainNetworkModel:
     def __init__(self, number_of_neurons_per_layer_encoder, number_of_neurons_per_layer_classifier,
                  batch_size, sequence_length, learning_rate, num_training_iters, tree_file,
                  dna_sequence_file,
-                 model_path, dna_num_letters=4):
+                 model_path, number_of_leaves=20, dna_num_letters=4):
         self.number_of_neurons_per_layer_encoder = number_of_neurons_per_layer_encoder
         self.number_of_neurons_per_layer_classifier = number_of_neurons_per_layer_classifier
 
@@ -29,6 +29,8 @@ class MainNetworkModel:
         self.tree_file = tree_file
         self.dna_sequence_file = dna_sequence_file
         self.model_path = model_path
+
+        self.number_of_leaves = number_of_leaves
 
         self.encoder_network = None
         self.classifier_network = None
@@ -45,7 +47,7 @@ class MainNetworkModel:
         self.initialize_classifier(encoder_output)
 
     def initialize_encoder_and_encode(self):
-        self.encoder_network = EncoderNetwork(self.number_of_neurons_per_layer_encoder)
+        self.encoder_network = EncoderNetwork(self.number_of_neurons_per_layer_encoder, self.number_of_leaves)
         encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2 = self.encoder_network.encode()
 
         return tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
