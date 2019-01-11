@@ -5,11 +5,11 @@ from utils import load_data_utils
 
 tree_file = "../dataset/5.2.tree"
 dna_sequence_file = "../dataset/seq_5.2.txt"
-model_path = "../models/promena/"
+model_path = "../models/5_20_2/"
 
 sequence_length = 100
 dna_num_letters = 4
-batch_size = 10
+batch_size = 50
 
 
 def predict():
@@ -23,8 +23,8 @@ def predict():
 
         for i in range(num_of_trees_to_infer):
             training_data_model = predict_tree(sess, i, dna_sequences, dna_subtree,
-                         dna_sequences_node_1,
-                         dna_sequences_node_2, are_nodes_together, number_of_leaves, predictions)
+                                               dna_sequences_node_1,
+                                               dna_sequences_node_2, are_nodes_together, number_of_leaves, predictions)
 
             tree = build_tree(training_data_model)
 
@@ -72,23 +72,39 @@ def predict_tree(session, dataset_index, dna_sequences, dna_subtree, dna_sequenc
             are_nodes_together: training_data_model.are_nodes_together,
             number_of_leaves: len(dna_sequences.keys())
         })
-    print(_nodes_together_predicted)
-    training_data_model.are_nodes_together = _nodes_together_predicted
+    print(_predictions)
+    training_data_model.are_nodes_together = _predictions
     return training_data_model
 
 
 def build_tree(training_data_model):
+    indexes = list(range(len(training_data_model.are_nodes_together)))
 
-    indexes = [i for i, x in enumerate(training_data_model.are_nodes_together) if x == 0]
+    # Calculate difference between predicted values, bigger the difference
+    # more certain the model is about the prediction
+    diff = [pair[0] - pair[1] for pair in training_data_model.are_nodes_together]
+    abs_diff = [abs(i) for i in diff]
+
+    # Sort absolute differences values in order to firstly connect nodes the model is certain about
+    sorted_indexes = [x for _, x in sorted(zip(abs_diff, indexes), reverse=True)]
+
     tree = []
 
-    for index in indexes:
+    for index in sorted_indexes:
+
         node_1_name = training_data_model.node_1[index]
         node_2_name = training_data_model.node_2[index]
+
+        # Only connect nodes the model predicted are together and are not previously connected with any other nodes
+        if diff[index] < 0 \
+                or node_1_name not in training_data_model.dna_sequences \
+                or node_2_name not in training_data_model.dna_sequences:
+            continue
+
         tree.append([node_1_name, node_2_name])
 
-        del(training_data_model.dna_sequences[node_1_name])
-        del(training_data_model.dna_sequences[node_2_name])
+        del (training_data_model.dna_sequences[node_1_name])
+        del (training_data_model.dna_sequences[node_2_name])
 
     for unpaired_nodes in training_data_model.dna_sequences.keys():
         tree.append(unpaired_nodes)
