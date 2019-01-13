@@ -11,6 +11,8 @@ sequence_length = 100
 dna_num_letters = 4
 batch_size = 50
 
+max_number_of_leaves = 5
+
 
 def predict():
     with tf.Session() as sess:
@@ -20,21 +22,22 @@ def predict():
             = load_tensors()
         dna_sequences, num_of_trees_to_infer = load_dna_sequences()
 
-        max_number_of_leaves = len(dna_sequences.keys())
+        for tree_num in range(num_of_trees_to_infer):
 
-        for i in range(num_of_trees_to_infer):
+            iteration_num = 0
 
             subtrees_to_infer = [dna_sequences.keys()]
             tree = []
-            unpaired_nodes = []
+            unpaired_nodes = {}
 
-            while subtrees_to_infer:
+            while subtrees_to_infer and iteration_num < 100000:
 
                 subtree = subtrees_to_infer.pop()
                 subtree_dna_sequences = retrieve_dna_sequences_of_nodes(subtree, dna_sequences)
 
                 training_data_model = TrainingDataModel(None, subtree_dna_sequences, sequence_length,
-                                                        dna_num_letters, dataset_index=i)
+                                                        max_number_of_leaves,
+                                                        dna_num_letters, dataset_index=tree_num)
                 training_data_model = predict_tree(sess, training_data_model, dna_subtree,
                                                    dna_sequences_node_1,
                                                    dna_sequences_node_2, are_nodes_together, number_of_leaves,
@@ -44,9 +47,15 @@ def predict():
 
                 if connected_subtree:
 
-                    if unpaired_nodes:
-                        node = unpaired_nodes.pop()
-                        connected_subtree = [connected_subtree, node]
+                    if single_nodes:
+                        connected_subtree.extend(single_nodes)
+                        single_nodes.clear()
+
+                    if iteration_num-1 in unpaired_nodes:
+                        node = unpaired_nodes[iteration_num-1]
+                        del(unpaired_nodes[iteration_num-1])
+                        node.append(connected_subtree)
+                        connected_subtree = node
 
                     tree.extend(connected_subtree)
 
@@ -56,9 +65,13 @@ def predict():
                     subtrees_to_infer.append(colliding_nodes)
 
                 if single_nodes:
-                    unpaired_nodes.extend(single_nodes)
+                    unpaired_nodes[iteration_num] = single_nodes
+                    # unpaired_nodes.extend(single_nodes)
 
-            tree.extend(unpaired_nodes)
+                iteration_num += 1
+
+            nodes = [node for sublist in unpaired_nodes.values() for node in sublist]
+            tree.extend(nodes)
             print_tree(tree)
 
 
@@ -146,40 +159,52 @@ def build_tree(training_data_model):
         del (training_data_model.dna_sequences[node_2_name])
 
     for unpaired_node in training_data_model.dna_sequences.keys():
+        if unpaired_node in colliding_node_names:
+            continue
         single_nodes.append(unpaired_node)
 
     return tree, colliding_node_names, single_nodes
 
 
+def paired_node_colliding_with_others(node_name, index, paired_nodes):
+    # Checks if node paired with suspicious node (node_name) is colliding with some other nodes
+    # that way the initial node is colliding as well
+
+    for name, indexes in paired_nodes.items():
+        if node_name != name and len(indexes) > 1 and index in indexes:
+            return True
+
+
 def get_colliding_nodes(training_data_model, prediction_differences):
     paired_nodes = {}
 
-    for index in range(len(prediction_differences)):
+    for indexes in range(len(prediction_differences)):
 
-        if prediction_differences[index] <= 0:
+        if prediction_differences[indexes] <= 0:
             continue
 
-        node_1_name = training_data_model.node_1[index]
-        node_2_name = training_data_model.node_2[index]
+        node_1_name = training_data_model.node_1[indexes]
+        node_2_name = training_data_model.node_2[indexes]
 
         if node_1_name not in paired_nodes:
             paired_nodes[node_1_name] = []
 
-        paired_nodes[node_1_name].append(index)
+        paired_nodes[node_1_name].append(indexes)
 
         if node_2_name not in paired_nodes:
             paired_nodes[node_2_name] = []
 
-        paired_nodes[node_2_name].append(index)
+        paired_nodes[node_2_name].append(indexes)
 
     colliding_node_names = []
     colliding_indexes = set()
 
-    for name, index in paired_nodes.items():
-        if len(index) < 2:
+    for name, indexes in paired_nodes.items():
+
+        if len(indexes) < 2 and not paired_node_colliding_with_others(name, indexes[0], paired_nodes):
             continue
         colliding_node_names.append(name)
-        colliding_indexes.update(index)
+        colliding_indexes.update(indexes)
 
     return colliding_node_names, colliding_indexes
 
