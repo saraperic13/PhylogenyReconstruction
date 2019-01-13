@@ -36,7 +36,7 @@ class TrainingDataModel:
             self.select_random_subroot_and_descendants()
 
     def prepare_node_pairs(self):
-        nodes_names = self.dna_sequences.keys()
+        nodes_names = self.get_all_nodes_names()
         descendants = tree_utils.create_nodes(nodes_name_list=nodes_names)
 
         descendants_pairs = tree_utils.get_all_node_pairs(nodes_names)
@@ -95,3 +95,5 @@ class TrainingDataModel:
         self.dna_sequences_node_1.append(self.dna_sequences[node_name_1][self.tree_index])
         self.dna_sequences_node_2.append(self.dna_sequences[node_name_2][self.tree_index])
 
+    def get_all_nodes_names(self):
+        return self.dna_sequences.keys()

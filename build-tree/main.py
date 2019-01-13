@@ -18,16 +18,47 @@ def predict():
 
         dna_subtree, dna_sequences_node_1, dna_sequences_node_2, are_nodes_together, number_of_leaves, predictions \
             = load_tensors()
-
         dna_sequences, num_of_trees_to_infer = load_dna_sequences()
 
+        max_number_of_leaves = len(dna_sequences.keys())
+
         for i in range(num_of_trees_to_infer):
-            training_data_model = predict_tree(sess, i, dna_sequences, dna_subtree,
-                                               dna_sequences_node_1,
-                                               dna_sequences_node_2, are_nodes_together, number_of_leaves, predictions)
 
-            tree = build_tree(training_data_model)
+            subtrees_to_infer = [dna_sequences.keys()]
+            tree = []
+            unpaired_nodes = []
 
+            while subtrees_to_infer:
+
+                subtree = subtrees_to_infer.pop()
+                subtree_dna_sequences = retrieve_dna_sequences_of_nodes(subtree, dna_sequences)
+
+                training_data_model = TrainingDataModel(None, subtree_dna_sequences, sequence_length,
+                                                        dna_num_letters, dataset_index=i)
+                training_data_model = predict_tree(sess, training_data_model, dna_subtree,
+                                                   dna_sequences_node_1,
+                                                   dna_sequences_node_2, are_nodes_together, number_of_leaves,
+                                                   predictions, max_number_of_leaves)
+
+                connected_subtree, colliding_nodes, single_nodes = build_tree(training_data_model)
+
+                if connected_subtree:
+
+                    if unpaired_nodes:
+                        node = unpaired_nodes.pop()
+                        connected_subtree = [connected_subtree, node]
+
+                    tree.extend(connected_subtree)
+
+                print_tree(tree)
+
+                if colliding_nodes:
+                    subtrees_to_infer.append(colliding_nodes)
+
+                if single_nodes:
+                    unpaired_nodes.extend(single_nodes)
+
+            tree.extend(unpaired_nodes)
             print_tree(tree)
 
 
@@ -54,12 +85,16 @@ def load_tensors():
            number_of_leaves, predictions
 
 
-def predict_tree(session, dataset_index, dna_sequences, dna_subtree, dna_sequence_node_1,
-                 dna_sequence_node_2,
-                 are_nodes_together, number_of_leaves, prediction):
-    training_data_model = TrainingDataModel(None, dna_sequences, sequence_length,
-                                            dna_num_letters, dataset_index=dataset_index)
+def retrieve_dna_sequences_of_nodes(nodes_list, dna_sequences):
+    sequences = {}
+    for node in nodes_list:
+        sequences[node] = dna_sequences[node]
+    return sequences
 
+
+def predict_tree(session, training_data_model, dna_subtree, dna_sequence_node_1,
+                 dna_sequence_node_2,
+                 are_nodes_together, number_of_leaves, prediction, max_number_of_leaves):
     nodes_together_predicted = tf.argmax(prediction, axis=1)
 
     training_data_model.prepare_node_pairs()
@@ -70,7 +105,8 @@ def predict_tree(session, dataset_index, dna_sequences, dna_subtree, dna_sequenc
             dna_sequence_node_1: training_data_model.dna_sequences_node_1,
             dna_sequence_node_2: training_data_model.dna_sequences_node_2,
             are_nodes_together: training_data_model.are_nodes_together,
-            number_of_leaves: len(dna_sequences.keys())
+            # number_of_leaves: len(training_data_model.dna_sequences.keys())
+            number_of_leaves: max_number_of_leaves
         })
     print(_predictions)
     training_data_model.are_nodes_together = _predictions
@@ -88,7 +124,10 @@ def build_tree(training_data_model):
     # Sort absolute differences values in order to firstly connect nodes the model is certain about
     sorted_indexes = [x for _, x in sorted(zip(abs_diff, indexes), reverse=True)]
 
-    tree = []
+    colliding_node_names, colliding_indexes = get_colliding_nodes(training_data_model, diff)
+    sorted_indexes = remove_colliding_nodes_indexes(sorted_indexes, colliding_indexes)
+
+    tree, single_nodes = [], []
 
     for index in sorted_indexes:
 
@@ -106,10 +145,49 @@ def build_tree(training_data_model):
         del (training_data_model.dna_sequences[node_1_name])
         del (training_data_model.dna_sequences[node_2_name])
 
-    for unpaired_nodes in training_data_model.dna_sequences.keys():
-        tree.append(unpaired_nodes)
+    for unpaired_node in training_data_model.dna_sequences.keys():
+        single_nodes.append(unpaired_node)
 
-    return tree
+    return tree, colliding_node_names, single_nodes
+
+
+def get_colliding_nodes(training_data_model, prediction_differences):
+    paired_nodes = {}
+
+    for index in range(len(prediction_differences)):
+
+        if prediction_differences[index] <= 0:
+            continue
+
+        node_1_name = training_data_model.node_1[index]
+        node_2_name = training_data_model.node_2[index]
+
+        if node_1_name not in paired_nodes:
+            paired_nodes[node_1_name] = []
+
+        paired_nodes[node_1_name].append(index)
+
+        if node_2_name not in paired_nodes:
+            paired_nodes[node_2_name] = []
+
+        paired_nodes[node_2_name].append(index)
+
+    colliding_node_names = []
+    colliding_indexes = set()
+
+    for name, index in paired_nodes.items():
+        if len(index) < 2:
+            continue
+        colliding_node_names.append(name)
+        colliding_indexes.update(index)
+
+    return colliding_node_names, colliding_indexes
+
+
+def remove_colliding_nodes_indexes(indexes_list, colliding_indexes):
+    for element in colliding_indexes:
+        indexes_list.remove(element)
+    return indexes_list
 
 
 def print_tree(tree):

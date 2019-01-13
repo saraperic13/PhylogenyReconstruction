@@ -41,6 +41,3 @@ def multiply_sequence_weight_matrices_with_activation(sequence, weights_matrices
 
     return sequence
 
-
-def convert_to_int_32(value):
-    return tf.int32(value)
