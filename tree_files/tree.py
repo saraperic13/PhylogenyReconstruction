@@ -20,10 +20,6 @@ class Tree:
     def increment_number_of_named(self):
         self.number_of_named += 1
 
-    # def __str__(self):
-    #     for node in self.nodes:
-    #         print("Children of node ", node.name, [n.name for n in node.descendants])
-
     def get_random_node(self):
         subroot = random.choice(self.nodes)
         while not subroot.descendants:

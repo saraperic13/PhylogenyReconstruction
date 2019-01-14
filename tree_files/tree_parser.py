@@ -33,4 +33,4 @@ def load_tree(node, tree):
 #     return Node(newick_node.name, newick_node.ancestor, newick_node.descendants)
 
 
-# parse("../dataset/5.2.tree")
+# parse("../dataset/10.2.tree")

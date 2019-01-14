@@ -15,10 +15,6 @@ def make_placeholder(shape, name):
     return tf.placeholder(tf.float32, shape=shape, name=name)
 
 
-def make_constant(shape, name, value):
-    return tf.constant(name=name, value=value, shape=shape)
-
-
 def make_int_placeholder(shape, name):
     return tf.placeholder(tf.int32, shape=shape, name=name)
 

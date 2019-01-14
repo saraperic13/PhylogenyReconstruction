@@ -7,7 +7,6 @@ from network_model.classfier_network import ClassifierNetwork
 from network_model.encoder_network import EncoderNetwork
 from network_model.training_data_model import TrainingDataModel
 from tree_files import tree_parser
-from tree_files import tree_utils
 from utils import load_data_utils
 
 
@@ -16,7 +15,7 @@ class MainNetworkModel:
     def __init__(self, number_of_neurons_per_layer_encoder, number_of_neurons_per_layer_classifier,
                  batch_size, sequence_length, learning_rate, num_training_iters, tree_file,
                  dna_sequence_file,
-                 model_path, number_of_leaves=20, dna_num_letters=4):
+                 model_path, max_number_of_leaves=20, dna_num_letters=4):
         self.number_of_neurons_per_layer_encoder = number_of_neurons_per_layer_encoder
         self.number_of_neurons_per_layer_classifier = number_of_neurons_per_layer_classifier
 
@@ -30,7 +29,7 @@ class MainNetworkModel:
         self.dna_sequence_file = dna_sequence_file
         self.model_path = model_path
 
-        self.number_of_leaves = number_of_leaves
+        self.max_number_of_leaves = max_number_of_leaves
 
         self.encoder_network = None
         self.classifier_network = None
@@ -47,7 +46,7 @@ class MainNetworkModel:
         self.initialize_classifier(encoder_output)
 
     def initialize_encoder_and_encode(self):
-        self.encoder_network = EncoderNetwork(self.number_of_neurons_per_layer_encoder, self.number_of_leaves)
+        self.encoder_network = EncoderNetwork(self.number_of_neurons_per_layer_encoder, self.max_number_of_leaves)
         encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2 = self.encoder_network.encode()
 
         return tf.concat([encoded_dataset, encoded_dna_sequence_1, encoded_dna_sequence_2], 1)
@@ -82,7 +81,7 @@ class MainNetworkModel:
             self.save_model(sess)
 
     def train_network(self, session):
-        dna_sequences, _= load_data_utils.read_data(self.dna_sequence_file)
+        dna_sequences, _ = load_data_utils.read_data(self.dna_sequence_file)
         trees = tree_parser.parse(self.tree_file)
 
         tree_indexes = list(range(len(trees)))
@@ -102,7 +101,7 @@ class MainNetworkModel:
             losses.clear()
 
     def train_over_tree(self, dna_sequences, tree, tree_index, session):
-        training_data_model = TrainingDataModel(tree, dna_sequences, self.sequence_length,
+        training_data_model = TrainingDataModel(tree, dna_sequences, self.sequence_length, self.max_number_of_leaves,
                                                 self.dna_num_letters, dataset_index=tree_index)
 
         training_data_model.prepare_randomized_batch_sized_data(self.batch_size)
@@ -113,8 +112,7 @@ class MainNetworkModel:
                 self.encoder_network.dna_subtree: training_data_model.descendants_dna_sequences,
                 self.encoder_network.dna_sequence_node_1: training_data_model.dna_sequences_node_1,
                 self.encoder_network.dna_sequence_node_2: training_data_model.dna_sequences_node_2,
-                self.encoder_network.are_nodes_together: training_data_model.are_nodes_together,
-                self.encoder_network.number_of_leaves: tree.get_number_of_leaves()
+                self.encoder_network.are_nodes_together: training_data_model.are_nodes_together
             })
         return _accuracy, _loss
 
@@ -141,7 +139,6 @@ class MainNetworkModel:
             inputs={'dna_subtree': self.encoder_network.dna_subtree,
                     'dna_sequence_node_1': self.encoder_network.dna_sequence_node_1,
                     'dna_sequence_node_2': self.encoder_network.dna_sequence_node_2,
-                    'are_nodes_together': self.encoder_network.are_nodes_together,
-                    'number_of_leaves': self.encoder_network.number_of_leaves},
+                    'are_nodes_together': self.encoder_network.are_nodes_together},
             outputs={'predictions': self.predictions})
         return builder, signature

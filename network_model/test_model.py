@@ -1,14 +1,15 @@
 import tensorflow as tf
 
 from network_model.training_data_model import TrainingDataModel
-from tree_files import tree_parser, tree_utils
+from tree_files import tree_parser
 from utils import file_utils
 from utils import load_data_utils
 
 
 class TestModel:
 
-    def __init__(self, tree_file, dna_sequence_file, model_path, sequence_length, batch_size, dna_num_letters,
+    def __init__(self, tree_file, dna_sequence_file, model_path, sequence_length, max_number_of_leaves, batch_size,
+                 dna_num_letters,
                  num_iters_per_tree):
         self.tree_file = tree_file
         self.dna_sequence_file = dna_sequence_file
@@ -21,6 +22,8 @@ class TestModel:
         self.dna_num_letters = dna_num_letters
         self.num_iters_per_tree = num_iters_per_tree
 
+        self.max_number_of_leaves = max_number_of_leaves
+
         self.number_of_trees = None
         self.losses, self.accuracies = [], []
 
@@ -28,8 +31,8 @@ class TestModel:
         with tf.Session() as sess:
             self.load_model(sess)
 
-            dna_subtree, dna_sequences_node_1, dna_sequences_node_2,\
-                are_nodes_together, accuracy, loss, predictions = self.load_tensors()
+            dna_subtree, dna_sequences_node_1, dna_sequences_node_2, \
+            are_nodes_together, accuracy, loss, predictions = self.load_tensors()
 
             dna_sequences, _ = self.load_dna_sequences()
             trees = self.load_trees()
@@ -74,6 +77,7 @@ class TestModel:
         current_tree_accuracies = []
         for step in range(self.num_iters_per_tree):
             training_data_model = TrainingDataModel(tree, dna_sequences, self.sequence_length,
+                                                    self.max_number_of_leaves,
                                                     self.dna_num_letters, dataset_index=tree_index)
 
             aa = tf.argmax(prediction, axis=1)
@@ -108,7 +112,8 @@ class TestModel:
         avg_acc = self.calculate_mean(self.accuracies)
         avg_loss = self.calculate_mean(self.losses)
 
-        file_utils.write_to_file("\n" + str(self.losses), "\n" + str(self.accuracies), str(avg_loss), str(avg_acc), path="test/")
+        file_utils.write_to_file("\n" + str(self.losses), "\n" + str(self.accuracies), str(avg_loss), str(avg_acc),
+                                 path="test/")
 
         print("Accuracy ", avg_acc)
         print("Loss", avg_loss)
