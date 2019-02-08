@@ -81,7 +81,7 @@ class MainNetworkModel:
             self.save_model(sess)
 
     def train_network(self, session):
-        dna_sequences, _ = load_data_utils.read_data(self.dna_sequence_file)
+        dna_sequences, _, _ = load_data_utils.read_data(self.dna_sequence_file)
         trees = tree_parser.parse(self.tree_file)
 
         tree_indexes = list(range(len(trees)))

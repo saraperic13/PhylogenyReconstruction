@@ -8,7 +8,7 @@ import numpy as np
 class TrainingDataModel:
 
     def __init__(self, tree, dna_sequences, dna_sequence_length, max_number_leaves, dna_num_letters=4,
-                 dataset_index=None):
+                 dataset_index=None, nodes_names=[]):
         self.dna_subroots = []
         self.dna_sequences_node_2 = []
         self.dna_sequences_node_1 = []
@@ -23,6 +23,7 @@ class TrainingDataModel:
         # self.dataset_size = len(dna_sequences.keys())
         self.dataset_size = max_number_leaves
         self.descendants_dna_sequences = []
+        self.nodes_names = nodes_names
 
         self.check_and_modify_dataset_index()
 
@@ -36,10 +37,9 @@ class TrainingDataModel:
             self.select_random_subroot_and_descendants()
 
     def prepare_node_pairs(self):
-        nodes_names = self.get_all_nodes_names()
-        descendants = tree_utils.create_nodes(nodes_name_list=nodes_names)
+        descendants = tree_utils.create_nodes(nodes_name_list=self.nodes_names)
 
-        descendants_pairs = tree_utils.get_all_node_pairs(nodes_names)
+        descendants_pairs = tree_utils.get_all_node_pairs(self.nodes_names)
         for pair in descendants_pairs:
             self.process_leaves_v2(pair)
             self.get_descendants_dna_with_padding(descendants)
@@ -92,6 +92,3 @@ class TrainingDataModel:
         self.node_2.append(node_name_2)
         self.dna_sequences_node_1.append(self.dna_sequences[node_name_1][self.tree_index])
         self.dna_sequences_node_2.append(self.dna_sequences[node_name_2][self.tree_index])
-
-    def get_all_nodes_names(self):
-        return self.dna_sequences.keys()

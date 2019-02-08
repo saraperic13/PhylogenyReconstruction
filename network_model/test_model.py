@@ -34,7 +34,7 @@ class TestModel:
             dna_subtree, dna_sequences_node_1, dna_sequences_node_2, \
             are_nodes_together, accuracy, loss, predictions = self.load_tensors()
 
-            dna_sequences, _ = self.load_dna_sequences()
+            dna_sequences, _, _= self.load_dna_sequences()
             trees = self.load_trees()
 
             for i in range(0, len(trees)):

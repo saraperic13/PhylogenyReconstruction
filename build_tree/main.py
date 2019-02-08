@@ -4,12 +4,11 @@ from network_model.training_data_model import TrainingDataModel
 from utils import load_data_utils
 from build_tree import minicut
 
-dna_sequence_file = "../dataset/seq_5.2.txt"
-model_path = "../models/5000_20/"
+dna_sequence_file = "../dataset/seq_10.2.txt"
+model_path = "../models/10_root/"
 
 sequence_length = 100
 dna_num_letters = 4
-batch_size = 50
 
 max_number_of_leaves = 20
 
@@ -20,45 +19,50 @@ def predict():
 
         dna_subtree, dna_sequences_node_1, dna_sequences_node_2, predictions \
             = load_tensors()
-        dna_sequences, num_of_trees_to_infer = load_dna_sequences()
+        dna_sequences, num_of_trees_to_infer, node_names = load_dna_sequences()
 
         for tree_num in range(num_of_trees_to_infer):
             tree = []
-            nodes = dna_sequences.keys()
 
-            build_tree(nodes, tree, dna_sequences, tree_num, sess, dna_subtree, dna_sequences_node_1,
+            build_tree(node_names, tree, dna_sequences, tree_num, sess, dna_subtree, dna_sequences_node_1,
                        dna_sequences_node_2, predictions)
 
             print_tree(tree)
 
 
-def build_tree(nodes, tree, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
+def build_tree(nodes_names, tree, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
                dna_sequences_node_2, predictions):
-    if not nodes:
+    if not nodes_names:
         return
     else:
+        unconnected_nodes = []
 
-        training_data_model = create_training_data_model(nodes, dna_sequences, tree_num, session, dna_subtree,
+        training_data_model = create_training_data_model(nodes_names, dna_sequences, tree_num, session, dna_subtree,
                                                          dna_sequences_node_1,
-                                                         dna_sequences_node_2, predictions)
+                                                         dna_sequences_node_2, predictions, node_names=nodes_names)
 
-        connected_subtree, subtree_to_infer = create_subgraphs(training_data_model)
+        connected_subtree, single_nodes, subtree_to_infer = create_subgraphs(training_data_model)
+        unconnected_nodes.extend(single_nodes)
+
 
         for nodes in subtree_to_infer:
-            build_tree(nodes, tree, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
+           build_tree(nodes, tree, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
                        dna_sequences_node_2, predictions)
 
         if connected_subtree:
-            append_subtree(tree, connected_subtree)
+            while unconnected_nodes:
+                node = unconnected_nodes.pop()
+                connected_subtree.extend(node)
+            tree.append(connected_subtree)
 
 
 def create_training_data_model(nodes, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
-                               dna_sequences_node_2, predictions):
+                               dna_sequences_node_2, predictions, node_names):
     subtree_dna_sequences = retrieve_dna_sequences_of_nodes(nodes, dna_sequences)
 
     training_data_model = TrainingDataModel(None, subtree_dna_sequences, sequence_length,
                                             max_number_of_leaves,
-                                            dna_num_letters, dataset_index=tree_num)
+                                            dna_num_letters, dataset_index=tree_num, nodes_names=node_names)
     training_data_model = predict_tree(session, training_data_model, dna_subtree,
                                        dna_sequences_node_1,
                                        dna_sequences_node_2,
@@ -67,23 +71,21 @@ def create_training_data_model(nodes, dna_sequences, tree_num, session, dna_subt
     return training_data_model
 
 
-def append_subtree(tree, subtree_list):
-    tree.append(subtree_list)
-
-
 def create_subgraphs(training_data_model):
-    connected_subtree, subtree_to_infer = [], []
+    connected_subtree, single_nodes, subtree_to_infer = [], [], []
     partition = minicut.get_partition(training_data_model.node_1, training_data_model.node_2,
                                       training_data_model.are_nodes_together)
 
     for node_pairs in partition:
-        if len(node_pairs) <= 2:
+        if len(node_pairs) == 1:
+            single_nodes.append(node_pairs)
+        elif len(node_pairs) == 2:
             connected_subtree.append(node_pairs)
         else:
             subtree_to_infer.append(node_pairs)
 
     # connected_subtree = [node_pairs for node_pairs in partition if len(node_pairs) <= 2]
-    return connected_subtree, subtree_to_infer
+    return connected_subtree, single_nodes, subtree_to_infer
 
 
 def load_dna_sequences():

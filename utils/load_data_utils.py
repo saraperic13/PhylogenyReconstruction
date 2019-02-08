@@ -3,6 +3,7 @@ import numpy as np
 
 def read_data(file_name):
     data = {}
+    node_names = []
     with open(file_name) as f:
         content = f.readlines()
         for line in content:
@@ -14,10 +15,11 @@ def read_data(file_name):
 
             if species not in data:
                 data[species] = []
+                node_names.append(species)
 
             data[species].append(np.array(sequence))
 
-    return data, len(data[species])
+    return data, len(data[species]), node_names
 
 
 def sequence_to_one_hot_enc(seq):
