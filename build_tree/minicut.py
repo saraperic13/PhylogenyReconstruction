@@ -9,7 +9,7 @@ def get_partition(left_nodes, right_nodes, are_together):
     return partition
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     G = nx.Graph()
     G.add_edge('1', '2', weight=.8)
     G.add_edge('1', '3', weight=.2)

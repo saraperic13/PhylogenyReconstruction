@@ -32,28 +32,44 @@ def predict():
 
 def build_tree(nodes_names, tree, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
                dna_sequences_node_2, predictions):
-    if not nodes_names:
-        return
-    else:
-        unconnected_nodes = []
 
-        training_data_model = create_training_data_model(nodes_names, dna_sequences, tree_num, session, dna_subtree,
-                                                         dna_sequences_node_1,
-                                                         dna_sequences_node_2, predictions, node_names=nodes_names)
+    unconnected_nodes, stack = [], []
 
-        connected_subtree, single_nodes, subtree_to_infer = create_subgraphs(training_data_model)
-        unconnected_nodes.extend(single_nodes)
+    training_data_model = create_training_data_model(nodes_names, dna_sequences, tree_num, session, dna_subtree,
+                                                     dna_sequences_node_1,
+                                                     dna_sequences_node_2, predictions, node_names=nodes_names)
 
+    connected_subtree, single_nodes, subtree_to_infer = create_subgraphs(training_data_model)
+    unconnected_nodes.extend(single_nodes)
+
+    if connected_subtree:
+        while unconnected_nodes:
+            node = unconnected_nodes.pop()
+            connected_subtree.extend(node)
+        stack.extend(connected_subtree)
+        # return stack
+    if subtree_to_infer:
 
         for nodes in subtree_to_infer:
-           build_tree(nodes, tree, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
-                       dna_sequences_node_2, predictions)
+            stack.extend(build_tree(nodes, tree, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
+                       dna_sequences_node_2, predictions))
 
-        if connected_subtree:
-            while unconnected_nodes:
+        while unconnected_nodes:
+            if stack:
                 node = unconnected_nodes.pop()
-                connected_subtree.extend(node)
-            tree.append(connected_subtree)
+                node.append(stack)
+                stack = []
+                tree.append(node)
+            else:
+                tree.append(unconnected_nodes.pop())
+
+        if stack:
+            tree.append(stack)
+            node = tree.copy()
+            tree.clear()
+            tree.append(list(node))
+            stack = []
+    return stack
 
 
 def create_training_data_model(nodes, dna_sequences, tree_num, session, dna_subtree, dna_sequences_node_1,
